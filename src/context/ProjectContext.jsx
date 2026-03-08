@@ -241,7 +241,7 @@ function projectReducer(state, action) {
       const duplicate = {
         ...cloneProject(source),
         project_id: crypto.randomUUID(),
-        project_name: `${source.project_name} (Copy)`,
+        project_name: `Copy of ${source.project_name}`,
         created_at: now,
         updated_at: now,
         status: 'active',
