@@ -179,6 +179,49 @@ describe('canMarkComplete — Steps 5 and 6 parallel exception', () => {
 })
 
 // ---------------------------------------------------------------------------
+// BR-01 Edge case: Blocked prerequisite must NOT count as Complete
+// ---------------------------------------------------------------------------
+
+describe('canMarkComplete — blocked prerequisite edge cases', () => {
+  it('blocks step 2 when step 1 is blocked', () => {
+    let steps = makeSteps()
+    steps = withStatus(steps, 1, 'blocked')
+    expect(canMarkComplete(2, steps)).toBe(false)
+  })
+
+  it('blocks step 3 when step 2 is blocked (step 1 complete)', () => {
+    let steps = withComplete(makeSteps(), [1])
+    steps = withStatus(steps, 2, 'blocked')
+    expect(canMarkComplete(3, steps)).toBe(false)
+  })
+
+  it('blocks step 5 when step 3 is blocked (steps 1–2 and 4 complete)', () => {
+    let steps = withComplete(makeSteps(), [1, 2, 4])
+    steps = withStatus(steps, 3, 'blocked')
+    expect(canMarkComplete(5, steps)).toBe(false)
+  })
+
+  it('blocks step 6 when step 4 is blocked (steps 1–3 complete)', () => {
+    let steps = withComplete(makeSteps(), [1, 2, 3])
+    steps = withStatus(steps, 4, 'blocked')
+    expect(canMarkComplete(6, steps)).toBe(false)
+  })
+
+  it('blocks step 7 when step 6 is blocked (steps 1–5 complete)', () => {
+    let steps = withComplete(makeSteps(), [1, 2, 3, 4, 5])
+    steps = withStatus(steps, 6, 'blocked')
+    expect(canMarkComplete(7, steps)).toBe(false)
+  })
+
+  it('blocks step 24 when step 1 is blocked (all others complete)', () => {
+    const allButFirst = Array.from({ length: 23 }, (_, i) => i + 2)
+    let steps = withComplete(makeSteps(), allButFirst)
+    steps = withStatus(steps, 1, 'blocked')
+    expect(canMarkComplete(24, steps)).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // BR-02: deriveProjectStatus
 // ---------------------------------------------------------------------------
 

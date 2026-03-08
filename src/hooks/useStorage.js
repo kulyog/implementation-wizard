@@ -36,6 +36,32 @@ function emptyRoot() {
 export function useStorage(state, dispatch) {
   const hydrated = useRef(false)
   const integrityWarningsRef = useRef([])
+  const stateRef = useRef(state)
+
+  // Keep stateRef current so the beforeunload handler always has the latest state.
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  // --- beforeunload: flush latest state synchronously before tab closes ---
+  useEffect(() => {
+    function handleBeforeUnload() {
+      if (!hydrated.current) return
+      try {
+        const serialised = JSON.stringify({
+          schema_version: 1,
+          exported_at: null,
+          projects: stateRef.current.projects,
+        })
+        localStorage.setItem(STORAGE_KEY, serialised)
+      } catch {
+        // Nothing we can do at unload time
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
 
   // --- Mount: read, migrate, validate, hydrate ---
   useEffect(() => {
