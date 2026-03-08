@@ -1,6 +1,6 @@
 # CLAUDE.md
 # Project: Implementation Wizard
-# Last updated: 2026-03-08
+# Last updated: 2026-03-08 (folder split documented)
 
 ## What This App Does
 A personal project tracker for a solo finance professional.
@@ -25,12 +25,25 @@ the browser.
 - /src/context/ProjectContext.jsx  useReducer + Context provider for all project state
 - /src/hooks/useStorage.js   localStorage read/write, hydrate, migrate
 - /src/utils/stepLogic.js    Business rule enforcement (BR-01 to BR-10)
-- /src/utils/migration.js    Schema version migration
-- /src/utils/integrityCheck.js  Startup data validation
+- /src/store/exportImport.js Export/import serialisation and file I/O
+- /src/store/schema.js       Ajv JSON schema for import validation
+- /src/store/migration.js    Schema version migration
+- /src/store/integrityCheck.js  Startup data validation
 - /src/App.jsx               Root component — currentView + currentProjectId state
 - /src/components/dashboard/ Dashboard, ProjectCard, CreateProjectModal, NextActionBanner
 - /src/components/project/   ProjectView, StepChecklist, StepDetailPanel
 - /src/tests/                Vitest unit tests
+
+## Folder Responsibilities
+IMPORTANT — place new files in the correct folder:
+- /src/utils/   Business logic only. Currently: stepLogic.js
+                Add here: pure functions that enforce domain rules (BR-xx)
+- /src/store/   Storage layer only. Currently: exportImport.js, schema.js,
+                migration.js, integrityCheck.js
+                Add here: anything that reads/writes localStorage, validates
+                schemas, migrates data, or handles export/import I/O
+- /src/hooks/   React hooks that bridge store ↔ components
+- /src/context/ React context providers and reducers
 
 ## Folder Structure Rule
 When creating any folder or directory structure, always place
