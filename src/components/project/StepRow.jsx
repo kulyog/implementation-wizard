@@ -23,7 +23,7 @@ export default function StepRow({ stepRecord, isActive, isSelected, onClick }) {
         isSelected
           ? 'bg-indigo-50 border-l-2 border-l-indigo-500'
           : isActive
-          ? 'bg-blue-50 hover:bg-blue-100'
+          ? 'bg-indigo-50 hover:bg-indigo-100'
           : 'hover:bg-gray-50'
       }`}
     >
@@ -33,7 +33,7 @@ export default function StepRow({ stepRecord, isActive, isSelected, onClick }) {
           stepRecord.status === 'complete'
             ? 'bg-emerald-500 text-white'
             : isActive
-            ? 'bg-blue-500 text-white'
+            ? 'bg-indigo-500 text-white'
             : 'bg-gray-200 text-gray-600'
         }`}
       >

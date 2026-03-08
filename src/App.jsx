@@ -9,6 +9,8 @@ import Dashboard from './components/dashboard/Dashboard'
 import ProjectView from './components/project/ProjectView'
 import ArchivedView from './components/archived/ArchivedView'
 import Toast from './components/shared/Toast'
+import Tooltip from './components/layout/Tooltip'
+import { TOOLTIPS } from './constants/tooltips'
 
 // ---------------------------------------------------------------------------
 // Inner app — consumes context (must be inside ProjectProvider)
@@ -78,24 +80,30 @@ function AppInner() {
           Implementation Wizard
         </button>
         <nav className="flex items-center gap-3">
-          <button
-            onClick={goToArchived}
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            Archived
-          </button>
-          <button
-            onClick={handleImport}
-            className="text-sm text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-md transition-colors"
-          >
-            Import
-          </button>
-          <button
-            onClick={exportData}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-3 py-1.5 rounded-md transition-colors"
-          >
-            Export
-          </button>
+          <Tooltip text={TOOLTIPS.archivedProjects} position="bottom">
+            <button
+              onClick={goToArchived}
+              className="text-sm text-gray-500 hover:text-indigo-600 transition-colors"
+            >
+              Archived
+            </button>
+          </Tooltip>
+          <Tooltip text={TOOLTIPS.importData} position="bottom">
+            <button
+              onClick={handleImport}
+              className="text-sm text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-md transition-colors"
+            >
+              Import
+            </button>
+          </Tooltip>
+          <Tooltip text={TOOLTIPS.exportData} position="bottom">
+            <button
+              onClick={exportData}
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-3 py-1.5 rounded-md transition-colors"
+            >
+              Export
+            </button>
+          </Tooltip>
         </nav>
       </header>
 

@@ -4,6 +4,8 @@
 import { useState } from 'react'
 import { useProject } from '../../context/ProjectContext'
 import ConfirmModal from '../shared/ConfirmModal'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
 
 const MAX_NAME = 100
 const MAX_DESC = 500
@@ -114,30 +116,38 @@ export default function ProjectHeader({ project, onBack, onArchived, onDeleted, 
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setEditing(true)}
-              className="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-md transition-colors"
-            >
-              Rename
-            </button>
-            <button
-              onClick={handleDuplicate}
-              className="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-md transition-colors"
-            >
-              Duplicate
-            </button>
-            <button
-              onClick={() => setShowArchiveConfirm(true)}
-              className="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-md transition-colors"
-            >
-              Archive
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="text-xs font-medium text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 px-2.5 py-1.5 rounded-md transition-colors"
-            >
-              Delete
-            </button>
+            <Tooltip text={TOOLTIPS.renameProject} position="bottom">
+              <button
+                onClick={() => setEditing(true)}
+                className="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-md transition-colors"
+              >
+                Rename
+              </button>
+            </Tooltip>
+            <Tooltip text={TOOLTIPS.duplicateProject} position="bottom">
+              <button
+                onClick={handleDuplicate}
+                className="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-md transition-colors"
+              >
+                Duplicate
+              </button>
+            </Tooltip>
+            <Tooltip text={TOOLTIPS.archiveProject} position="bottom">
+              <button
+                onClick={() => setShowArchiveConfirm(true)}
+                className="text-xs font-medium text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-md transition-colors"
+              >
+                Archive
+              </button>
+            </Tooltip>
+            <Tooltip text={TOOLTIPS.deleteProject} position="bottom">
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-xs font-medium text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 px-2.5 py-1.5 rounded-md transition-colors"
+              >
+                Delete
+              </button>
+            </Tooltip>
           </div>
         </div>
       )}

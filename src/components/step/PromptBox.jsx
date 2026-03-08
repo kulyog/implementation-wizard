@@ -4,6 +4,8 @@
 
 import { useEffect } from 'react'
 import { useClipboard } from '../../hooks/useClipboard'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
 
 /**
  * @param {{
@@ -37,16 +39,18 @@ export default function PromptBox({ promptText, onCopied }) {
         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
           AI Prompt
         </label>
-        <button
-          onClick={handleCopy}
-          className={`text-xs font-medium px-3 py-1 rounded-md border transition-colors ${
-            copied
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-              : 'bg-white border-gray-300 text-gray-600 hover:border-indigo-400 hover:text-indigo-600'
-          }`}
-        >
-          {copied ? 'Copied ✓' : 'Copy Prompt'}
-        </button>
+        <Tooltip text={TOOLTIPS.copyPrompt} position="top">
+          <button
+            onClick={handleCopy}
+            className={`text-xs font-medium px-3 py-1 rounded-md border transition-colors ${
+              copied
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                : 'bg-white border-gray-300 text-gray-600 hover:border-indigo-400 hover:text-indigo-600'
+            }`}
+          >
+            {copied ? 'Copied ✓' : 'Copy Prompt'}
+          </button>
+        </Tooltip>
       </div>
       <pre className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-md p-3 whitespace-pre-wrap font-mono leading-relaxed max-h-48 overflow-y-auto select-all">
         {promptText}

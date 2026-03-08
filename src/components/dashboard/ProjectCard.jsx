@@ -5,9 +5,11 @@
 import { getProgressPercent, getActiveStepNumber, countCompletedSteps } from '../../utils/stepLogic'
 import NextActionBanner from './NextActionBanner'
 import StepStripChart from './StepStripChart'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
 
 const STATUS_STYLES = {
-  active: 'bg-blue-100 text-blue-700',
+  active: 'bg-indigo-100 text-indigo-700',
   complete: 'bg-emerald-100 text-emerald-700',
   archived: 'bg-gray-100 text-gray-500',
 }
@@ -77,12 +79,14 @@ export default function ProjectCard({ project, onOpen }) {
       <NextActionBanner steps={project.steps} />
 
       {/* Open button */}
-      <button
-        onClick={() => onOpen(project.project_id)}
-        className="mt-3 w-full text-xs font-medium text-indigo-600 border border-indigo-200 rounded-md py-1.5 hover:bg-indigo-50 transition-colors"
-      >
-        Open Project →
-      </button>
+      <Tooltip text={TOOLTIPS.openProject} position="bottom">
+        <button
+          onClick={() => onOpen(project.project_id)}
+          className="mt-3 w-full text-xs font-medium text-indigo-600 border border-indigo-200 rounded-md py-1.5 hover:bg-indigo-50 transition-colors"
+        >
+          Open Project →
+        </button>
+      </Tooltip>
     </div>
   )
 }

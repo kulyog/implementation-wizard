@@ -7,8 +7,17 @@ import { useState } from 'react'
 import { canMarkComplete, canMarkBlocked, detectSequenceWarning } from '../../utils/stepLogic'
 import { useProject } from '../../context/ProjectContext'
 import BlockedReasonField from './BlockedReasonField'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
 
 const STATUSES = ['pending', 'in_progress', 'complete', 'blocked']
+
+const STATUS_TOOLTIPS = {
+  pending:     TOOLTIPS.statusPending,
+  in_progress: TOOLTIPS.statusInProgress,
+  complete:    TOOLTIPS.statusComplete,
+  blocked:     TOOLTIPS.statusBlocked,
+}
 
 const BUTTON_STYLES = {
   pending:     'border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50',
@@ -107,16 +116,17 @@ export default function StatusControls({ projectId, stepRecord, allSteps, onWarn
           const isDisabled = s === 'complete' && !canMarkComplete(stepRecord.step_number, allSteps)
 
           return (
-            <button
-              key={s}
-              onClick={() => handleStatusClick(s)}
-              disabled={isDisabled && !isActive}
-              className={`px-3 py-1.5 rounded-md border text-xs transition-colors ${
-                isActive ? ACTIVE_STYLES[s] : BUTTON_STYLES[s]
-              } ${isDisabled && !isActive ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
-              {LABELS[s]}
-            </button>
+            <Tooltip key={s} text={STATUS_TOOLTIPS[s]} position="bottom">
+              <button
+                onClick={() => handleStatusClick(s)}
+                disabled={isDisabled && !isActive}
+                className={`px-3 py-1.5 rounded-md border text-xs transition-colors ${
+                  isActive ? ACTIVE_STYLES[s] : BUTTON_STYLES[s]
+                } ${isDisabled && !isActive ? 'opacity-40 cursor-not-allowed' : ''}`}
+              >
+                {LABELS[s]}
+              </button>
+            </Tooltip>
           )
         })}
       </div>

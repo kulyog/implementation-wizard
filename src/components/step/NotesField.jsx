@@ -3,6 +3,8 @@
 // Saves on blur. No length limit enforced.
 
 import { useState, useEffect } from 'react'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
 
 /**
  * @param {{
@@ -26,9 +28,11 @@ export default function NotesField({ value, onSave }) {
 
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5" htmlFor="step-notes">
-        Notes
-      </label>
+      <Tooltip text={TOOLTIPS.notesField} position="top">
+        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 cursor-default" htmlFor="step-notes">
+          Notes
+        </label>
+      </Tooltip>
       <textarea
         id="step-notes"
         value={local}

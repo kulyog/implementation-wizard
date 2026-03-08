@@ -6,6 +6,8 @@ import { useState } from 'react'
 import { useProject } from '../../context/ProjectContext'
 import ProjectCard from './ProjectCard'
 import CreateProjectModal from './CreateProjectModal'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
 
 /**
  * @param {{ onOpenProject: function }} props
@@ -18,7 +20,7 @@ export default function Dashboard({ onOpenProject }) {
   const activeProjects = state.projects.filter((p) => p.status !== 'archived')
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
+    <div className="max-w-7xl mx-auto px-6 py-8">
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -29,20 +31,22 @@ export default function Dashboard({ onOpenProject }) {
               : `${activeProjects.length} active project${activeProjects.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
-        >
-          <span className="text-base leading-none">+</span>
-          New Project
-        </button>
+        <Tooltip text={TOOLTIPS.newProject} position="bottom">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
+          >
+            <span className="text-base leading-none">+</span>
+            New Project
+          </button>
+        </Tooltip>
       </div>
 
       {/* Project grid */}
       {activeProjects.length === 0 ? (
         <EmptyState onCreate={() => setShowCreate(true)} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {activeProjects.map((project) => (
             <ProjectCard
               key={project.project_id}

@@ -8,6 +8,10 @@ import StatusBadge from '../shared/StatusBadge'
 import PromptBox from '../step/PromptBox'
 import StatusControls from '../step/StatusControls'
 import NotesField from '../step/NotesField'
+import StepTimer from '../step/StepTimer'
+import Tooltip from '../layout/Tooltip'
+import { TOOLTIPS } from '../../constants/tooltips'
+import { useClipboard } from '../../hooks/useClipboard'
 
 /**
  * @param {{
@@ -19,7 +23,9 @@ import NotesField from '../step/NotesField'
  * }} props
  */
 export default function StepDetailPanel({ projectId, stepNumber, allSteps, onWarning, onCopied }) {
-  const { dispatch } = useProject()
+  const { state, dispatch } = useProject()
+  const { copy, copied } = useClipboard()
+  const project = state.projects.find((p) => p.project_id === projectId)
 
   const stepRecord = allSteps.find((s) => s.step_number === stepNumber)
   const staticStep = STEPS.find((s) => s.step_number === stepNumber)
@@ -44,17 +50,44 @@ export default function StepDetailPanel({ projectId, stepNumber, allSteps, onWar
     })
   }
 
-  function formatDuration(seconds) {
-    if (!seconds) return null
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
-    if (h > 0) return `${h}h ${m}m ${s}s`
-    if (m > 0) return `${m}m ${s}s`
-    return `${s}s`
-  }
+  function generateRecoveryPrompt() {
+    const incompleteSteps = allSteps
+      .filter((s) => s.status !== 'complete')
+      .sort((a, b) => a.step_number - b.step_number)
 
-  const duration = formatDuration(stepRecord.time_in_step_seconds)
+    const completeSteps = allSteps
+      .filter((s) => s.status === 'complete')
+      .sort((a, b) => a.step_number - b.step_number)
+
+    const incompleteLines = incompleteSteps.map((s) => {
+      const staticSt = STEPS.find((st) => st.step_number === s.step_number)
+      const name = staticSt?.step_name ?? `Step ${s.step_number}`
+      let line = `- Step ${s.step_number} — ${name} — ${s.status.replace('_', ' ')}`
+      if (s.status === 'blocked' && s.blocked_reason) {
+        line += `\n  Block reason: ${s.blocked_reason}`
+      }
+      return line
+    }).join('\n')
+
+    const completeLines = completeSteps.map((s) => {
+      const staticSt = STEPS.find((st) => st.step_number === s.step_number)
+      const name = staticSt?.step_name ?? `Step ${s.step_number}`
+      return `- Step ${s.step_number} — ${name}`
+    }).join('\n')
+
+    const projectName = project?.project_name ?? 'this project'
+
+    return `You are Claude Code helping me resume work on my project: ${projectName}
+
+## Incomplete Steps
+${incompleteLines || 'None — all steps are complete!'}
+
+## Completed Steps
+${completeLines || 'None completed yet.'}
+
+## Your Task
+Please review the incomplete steps above and help me continue from where I left off. Start by examining any step currently In Progress, or identify the next step that should be worked on based on sequential order (Steps 5 and 6 may run in parallel once Step 4 is complete).`
+  }
 
   return (
     <div className="h-full overflow-y-auto px-6 py-5 space-y-6">
@@ -118,7 +151,8 @@ export default function StepDetailPanel({ projectId, stepNumber, allSteps, onWar
       {/* Timestamps */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Timestamps</p>
-        <div className="space-y-1 text-xs text-gray-600">
+        <div className="space-y-2 text-xs text-gray-600">
+          <StepTimer stepRecord={stepRecord} />
           <div className="flex items-center gap-2">
             <span className="text-gray-400 w-20 shrink-0">Started</span>
             <span>{formatDateTime(stepRecord.started_at)}</span>
@@ -127,14 +161,23 @@ export default function StepDetailPanel({ projectId, stepNumber, allSteps, onWar
             <span className="text-gray-400 w-20 shrink-0">Completed</span>
             <span>{formatDateTime(stepRecord.completed_at)}</span>
           </div>
-          {duration && (
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 w-20 shrink-0">Time in step</span>
-              <span className="font-medium text-indigo-600">{duration}</span>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Recovery Prompt */}
+      {allSteps.some((s) => s.status !== 'complete') && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recovery</p>
+          <Tooltip text={TOOLTIPS.recoveryPrompt} position="top">
+            <button
+              onClick={() => copy(generateRecoveryPrompt())}
+              className="text-xs font-medium text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-md transition-colors"
+            >
+              {copied ? 'Copied! ✓' : 'Copy Recovery Prompt'}
+            </button>
+          </Tooltip>
+        </div>
+      )}
     </div>
   )
 }
