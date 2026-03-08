@@ -4,6 +4,7 @@
 
 import { getProgressPercent, getActiveStepNumber, countCompletedSteps } from '../../utils/stepLogic'
 import NextActionBanner from './NextActionBanner'
+import StepStripChart from './StepStripChart'
 
 const STATUS_STYLES = {
   active: 'bg-blue-100 text-blue-700',
@@ -54,19 +55,14 @@ export default function ProjectCard({ project, onOpen }) {
         </p>
       )}
 
-      {/* Progress bar */}
+      {/* Step strip chart */}
       <div className="mt-2">
-        <div className="flex items-center justify-between mb-1">
+        <StepStripChart steps={project.steps} />
+        <div className="flex items-center justify-between mt-1">
           <span className="text-xs text-gray-500">
             {completed} / {project.steps.length} steps complete
           </span>
           <span className="text-xs font-medium text-gray-700">{progress}%</span>
-        </div>
-        <div className="w-full bg-gray-100 rounded-full h-1.5">
-          <div
-            className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
         </div>
       </div>
 

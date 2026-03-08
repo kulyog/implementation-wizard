@@ -2,10 +2,13 @@
 // Root component. Owns top-level navigation state.
 // Renders one view at a time: Dashboard, ProjectView, or ArchivedView.
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { ProjectProvider, useProject } from './context/ProjectContext'
 import { useStorage } from './hooks/useStorage'
 import Dashboard from './components/dashboard/Dashboard'
+import ProjectView from './components/project/ProjectView'
+import ArchivedView from './components/archived/ArchivedView'
+import Toast from './components/shared/Toast'
 
 // ---------------------------------------------------------------------------
 // Inner app — consumes context (must be inside ProjectProvider)
@@ -17,9 +20,16 @@ function AppInner() {
   // currentView: 'dashboard' | 'project' | 'archived'
   const [currentView, setCurrentView] = useState('dashboard')
   const [currentProjectId, setCurrentProjectId] = useState(null)
+  const [toast, setToast] = useState(null) // { message, type }
 
-  // Sync state ↔ localStorage
-  useStorage(state, dispatch)
+  // Sync state ↔ localStorage; get export/import functions
+  const { exportData, importData } = useStorage(state, dispatch)
+
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ message, type })
+  }, [])
+
+  const dismissToast = useCallback(() => setToast(null), [])
 
   // Don't render until hydrated from localStorage
   if (!state.hydrated) {
@@ -44,6 +54,19 @@ function AppInner() {
     setCurrentView('archived')
   }
 
+  function handleImport() {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json,application/json'
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      const result = await importData(file)
+      showToast(result.message, result.ok ? 'success' : 'error')
+    }
+    input.click()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top navigation bar */}
@@ -54,12 +77,24 @@ function AppInner() {
         >
           Implementation Wizard
         </button>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-3">
           <button
             onClick={goToArchived}
             className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             Archived
+          </button>
+          <button
+            onClick={handleImport}
+            className="text-sm text-gray-500 hover:text-gray-900 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-md transition-colors"
+          >
+            Import
+          </button>
+          <button
+            onClick={exportData}
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-3 py-1.5 rounded-md transition-colors"
+          >
+            Export
           </button>
         </nav>
       </header>
@@ -70,72 +105,19 @@ function AppInner() {
           <Dashboard onOpenProject={openProject} />
         )}
         {currentView === 'project' && currentProjectId && (
-          <ProjectViewPlaceholder
+          <ProjectView
             projectId={currentProjectId}
             onBack={goToDashboard}
           />
         )}
         {currentView === 'archived' && (
-          <ArchivedViewPlaceholder onBack={goToDashboard} />
+          <ArchivedView onBack={goToDashboard} onOpenProject={openProject} />
         )}
       </main>
-    </div>
-  )
-}
 
-// ---------------------------------------------------------------------------
-// Placeholder views — replaced in later sprints
-// ---------------------------------------------------------------------------
-
-function ProjectViewPlaceholder({ projectId, onBack }) {
-  const { state } = useProject()
-  const project = state.projects.find((p) => p.project_id === projectId)
-
-  if (!project) {
-    return (
-      <div className="p-8">
-        <button onClick={onBack} className="text-indigo-600 hover:underline text-sm mb-4">
-          ← Back to Dashboard
-        </button>
-        <p className="text-gray-500">Project not found.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="p-8">
-      <button onClick={onBack} className="text-indigo-600 hover:underline text-sm mb-4">
-        ← Back to Dashboard
-      </button>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{project.project_name}</h1>
-      <p className="text-gray-500 text-sm mb-6">{project.project_description}</p>
-      <p className="text-gray-400 text-sm italic">
-        ProjectView will be built in Sprint 1 tasks S1-13 to S1-17.
-      </p>
-    </div>
-  )
-}
-
-function ArchivedViewPlaceholder({ onBack }) {
-  const { state } = useProject()
-  const archived = state.projects.filter((p) => p.status === 'archived')
-
-  return (
-    <div className="p-8">
-      <button onClick={onBack} className="text-indigo-600 hover:underline text-sm mb-4">
-        ← Back to Dashboard
-      </button>
-      <h1 className="text-xl font-bold text-gray-900 mb-4">Archived Projects</h1>
-      {archived.length === 0 ? (
-        <p className="text-gray-500 text-sm">No archived projects.</p>
-      ) : (
-        <ul className="space-y-2">
-          {archived.map((p) => (
-            <li key={p.project_id} className="text-gray-700 text-sm">
-              {p.project_name}
-            </li>
-          ))}
-        </ul>
+      {/* Global toast (import success/failure) */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />
       )}
     </div>
   )
