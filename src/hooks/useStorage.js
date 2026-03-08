@@ -10,6 +10,7 @@
 import { useEffect, useRef } from 'react'
 import { migrate, needsMigration } from '../utils/migration'
 import { integrityCheck } from '../utils/integrityCheck'
+import { importProjects } from '../utils/exportImport'
 
 const STORAGE_KEY = 'iw-data'
 
@@ -119,40 +120,14 @@ export function useStorage(state, dispatch) {
     URL.revokeObjectURL(url)
   }
 
-  // --- Import from a JSON backup file ---
+  // --- Import from a JSON backup file (Ajv-validated, B-01) ---
   // Returns a Promise that resolves with { ok: boolean, message: string }
-  function importData(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        try {
-          const parsed = JSON.parse(e.target.result)
-
-          // Basic format check (full Ajv validation added in Sprint 2)
-          if (parsed.export_format !== 'implementation-wizard-backup') {
-            resolve({ ok: false, message: 'File is not a valid Implementation Wizard backup.' })
-            return
-          }
-          if (!Array.isArray(parsed.projects)) {
-            resolve({ ok: false, message: 'Backup file has no projects array.' })
-            return
-          }
-
-          // Hydrate from imported data
-          const root = {
-            schema_version: parsed.schema_version ?? 1,
-            exported_at: parsed.exported_at ?? null,
-            projects: parsed.projects,
-          }
-          dispatch({ type: 'HYDRATE', payload: root })
-          resolve({ ok: true, message: `Imported ${parsed.projects.length} project(s) successfully.` })
-        } catch {
-          resolve({ ok: false, message: 'Failed to parse backup file. Ensure it is valid JSON.' })
-        }
-      }
-      reader.onerror = () => resolve({ ok: false, message: 'Failed to read file.' })
-      reader.readAsText(file)
-    })
+  async function importData(file) {
+    const result = await importProjects(file)
+    if (result.ok) {
+      dispatch({ type: 'HYDRATE', payload: result.data })
+    }
+    return { ok: result.ok, message: result.message }
   }
 
   return {
