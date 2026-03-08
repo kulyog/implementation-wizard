@@ -21,6 +21,13 @@ Backend  : Supabase (PostgreSQL)
 Hosting  : Vercel
 Repo     : GitHub
 
+## Folder Structure Rule
+When creating any folder or directory structure, always place 
+a .gitkeep file inside every folder that has no other files.
+This ensures Git tracks all folders correctly.
+Example: docs/.gitkeep, releases/.gitkeep, src/components/.gitkeep
+Remove .gitkeep from a folder only when a real file is added to it.
+
 ## Coding Standards
 - TypeScript for all files
 - One component per file in /src/components/
