@@ -48,6 +48,9 @@ IMPORTANT — place new files in the correct folder:
 - /src/context/ React context providers and reducers
 - /src/store/   UNUSED — do not place files here
 
+NOTE: /src/lib/ and /src/pages/ do not exist in this project.
+Utility functions belong in /src/utils/. Data files belong in /src/data/.
+
 ## Folder Structure Rule
 When creating any folder or directory structure, always place
 a .gitkeep file inside every folder that has no other files.

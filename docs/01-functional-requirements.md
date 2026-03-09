@@ -3,11 +3,13 @@
 
 | Field | Detail |
 |---|---|
-| **Document Version** | 1.1 — Final |
-| **Status** | ✅ Approved — All Open Questions Resolved |
+| **Document Version** | 1.2 |
+| **Status** | ✅ Approved — Updated for post-V1.0 features |
 | **Prepared By** | Domain Expert Persona |
-| **Date** | 2026-03-08 |
+| **Date** | 2026-03-09 |
 | **Owner** | Finance Professional / Solo User |
+
+> **v1.2 Change Note:** v1.2 adds F-23, F-24, F-25, BR-11, and updated data model to reflect post-launch enhancements.
 
 ---
 
@@ -88,7 +90,7 @@ Every step must surface the following information:
 ### 4.4 Document Tracker
 
 | # | Feature | Description |
-|---|---|
+|---|---|---|
 | F-12 | /docs File Registry | Each project maintains a registry of the expected /docs output files (e.g. 01-functional-requirements.md, 02-technical-specifications.md, etc.). |
 | F-13 | File Status Indicators | Each expected file is shown as: Pending (step not yet complete), Created (step complete — file should exist), or Noted (user has manually confirmed file exists). |
 | F-14 | File Notes | User can add a note against each file (e.g. file path, version, location). |
@@ -96,7 +98,7 @@ Every step must surface the following information:
 ### 4.5 Data Persistence
 
 | # | Feature | Description |
-|---|---|
+|---|---|---|
 | F-15 | Session Persistence | All project data — projects, step statuses, notes, timestamps, blocked reasons — must persist across browser sessions using browser **localStorage**. No external server or database is required for Version 1.0. |
 | F-16 | No Data Loss on Refresh | Closing and reopening the browser must not result in loss of any data. |
 | F-17 | Data Export | User can export all project data — including both active and archived projects — as a single JSON file for backup purposes. The exported filename should include a timestamp (e.g. `implementation-wizard-backup-2026-03-08.json`). |
@@ -105,11 +107,21 @@ Every step must surface the following information:
 ### 4.6 Usability
 
 | # | Feature | Description |
-|---|---|
+|---|---|---|
 | F-19 | Responsive Layout | The application must be usable on a desktop browser. Mobile-friendliness is desirable but not required. |
 | F-20 | Keyboard Shortcut — Copy Prompt | Pressing a defined keyboard shortcut while a step is open copies the prompt to clipboard. |
 | F-21 | Duplicate Project | User can duplicate any existing project (active or archived). The duplicate creates a new project with the same name suffixed "(Copy)", copies the description, and resets all 24 steps to Pending status. Notes, timestamps, and blocked reasons are **not** copied. The user may rename the duplicate immediately on creation. |
 | F-22 | Time-in-Step Metric | Each step in the detail panel displays elapsed time from when the step was first set to In Progress. For completed steps, the fixed elapsed duration between started_at and completed_at is displayed. For In Progress steps, the counter runs live. |
+
+### 4.7 Post-Launch Features
+
+These features were added after V1.0 release.
+
+| # | Feature | Description |
+|---|---|---|
+| F-23 | Change Log | Each project maintains a per-project change log. The user can add, edit, and delete change request entries. Each entry records: Date, Type (A=Mid-build, B=Post-release bug, C=Post-release enhancement, D=Framework improvement), Description, Version Target, Personas to Re-run, and Status (Open / In Progress / Closed). The Change Log is accessible via a dedicated tab within the Project View. |
+| F-24 | Support Personas Card | The Dashboard includes a Support Personas card listing all 8 persona definitions (Domain Expert, AI Expert, Technical Architect, UI Expert, QC Analyst, Auditor, Trainer, Technical Expert). Each persona has a Copy Definition button. A Copy All Definitions button copies all 8 definitions concatenated into a single block for pasting into Claude Web Project Instructions. A How to Invoke section shows a read-only example prompt for each persona. |
+| F-25 | Claude Web Setup Gate | Step 1 includes a mandatory two-item setup checklist: (1) Write business requirements, (2) Set up Claude Web project by copying all persona definitions into Project Instructions. Step 2 is blocked — cannot be set to In Progress or Complete — until item 2 is confirmed. Confirmation persists across browser sessions per project. |
 
 ---
 
@@ -127,6 +139,7 @@ Every step must surface the following information:
 | BR-08 | Deleting a project requires an explicit confirmation step. Deletion is permanent. |
 | BR-09 | Archiving a project removes it from the active dashboard view but preserves all data. Archived projects must be accessible via a separate view. |
 | BR-10 | If a step is marked Complete and a subsequent step has already been started, the completion timestamp is recorded but no rollback of subsequent steps is triggered automatically. The user is shown a warning if any earlier step is un-completed. |
+| BR-11 | Step 2 cannot be set to In Progress or Complete until the Claude Web project setup has been confirmed in the Step 1 setup checklist (F-25). An amber warning banner is displayed on Step 2 when this condition is not met. The gate can be reset by unchecking the setup confirmation in Step 1, which re-locks Step 2. |
 
 ---
 
@@ -175,6 +188,8 @@ The following is the master step register. Each step has a defined name, actor, 
 | created_date | DateTime | Auto-set on creation |
 | status | Enum | Active / Complete / Archived |
 | steps | Array | Array of 24 StepRecord objects |
+| change_log | Array | Array of ChangeLogRecord objects. Initialised as empty array on project creation. |
+| claude_web_setup_complete | Boolean | Tracks whether the Claude Web project setup has been confirmed in Step 1. Initialised as false on project creation. Persisted in localStorage. |
 
 ### 7.2 Step Record
 
@@ -203,6 +218,18 @@ The following is the master step register. Each step has a defined name, actor, 
 | linked_step | Integer | Step number that produces this file |
 | status | Enum | Pending / Created / Noted |
 | user_note | String | Optional. User-entered file path or comment. |
+
+### 7.4 Change Log Record
+
+| Field | Type | Notes |
+|---|---|---|
+| id | String (UUID) | System-generated on entry creation |
+| date | String (ISO 8601) | Entry date. Defaults to today on creation. |
+| type | Enum | A=Mid-build change, B=Post-release bug, C=Post-release enhancement, D=Framework improvement |
+| description | String | Required. User-entered description of the change. |
+| version_target | String | Optional. Target version for the change (e.g. V1.1). |
+| personas_to_rerun | String | Optional. Comma-separated list of personas to re-run for this change. |
+| status | Enum | Open / In Progress / Closed |
 
 ---
 
@@ -237,4 +264,4 @@ All open questions from v1.0 have been resolved by the Owner. No open questions 
 
 ---
 
-*End of Document — 01-functional-requirements.md v1.1 (Final)*
+*End of Document — 01-functional-requirements.md v1.2*

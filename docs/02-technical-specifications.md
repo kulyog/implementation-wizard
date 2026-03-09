@@ -3,11 +3,13 @@
 
 | Field | Detail |
 |---|---|
-| **Document Version** | 1.1 — Final |
-| **Status** | ✅ Approved — All Open Questions Resolved |
+| **Document Version** | 1.2 |
+| **Status** | ✅ Approved — Updated for post-V1.0 features |
 | **Prepared By** | Technical Architect Persona |
-| **Date** | 2026-03-08 |
-| **Input Documents** | 01-functional-requirements.md v1.1 (Final), 03-ai-recommendations.md v1.1 (Final) |
+| **Date** | 2026-03-09 |
+| **Input Documents** | 01-functional-requirements.md v1.2, 03-ai-recommendations.md v1.1 (Final) |
+
+> **v1.2 Change Note:** v1.2 adds post-launch sprint, new components, updated data model, BR-11, and current test summary.
 
 ---
 
@@ -34,6 +36,11 @@ All 22 features (F-01 through F-22) and 10 business rules (BR-01 through BR-10) 
 - Step-status strip chart on dashboard (C-06)
 - Next Action contextual banner (C-02)
 - AI-written tooltip help text (C-04)
+
+Post-V1.0 additions (now in scope):
+- Per-project Change Log with add/edit/delete (F-23)
+- Support Personas card with Copy Definition and Copy All Definitions (F-24)
+- Claude Web setup gate with Step 1 checklist and Step 2 blocking (F-25, BR-11)
 
 ### Out of Scope — Version 1.0
 
@@ -164,7 +171,8 @@ implementation-wizard/
 │   │
 │   ├── /data
 │   │   ├── steps.js                   # STEPS array — 24 static step definitions (READ-ONLY)
-│   │   └── schema.js                  # Ajv JSON schema for export/import validation (B-01)
+│   │   ├── schema.js                  # Ajv JSON schema for export/import validation (B-01)
+│   │   └── supportPersonas.js         # SUPPORT_PERSONAS array — 8 persona definitions with prompt_text and example_prompt (F-24)
 │   │
 │   ├── /context
 │   │   └── ProjectContext.jsx         # useReducer + Context provider for all project state
@@ -175,7 +183,7 @@ implementation-wizard/
 │   │   └── useStepTimer.js            # Live elapsed time counter for In Progress steps (F-22)
 │   │
 │   ├── /utils
-│   │   ├── stepLogic.js               # Business rule enforcement functions (BR-01 to BR-10)
+│   │   ├── stepLogic.js               # Business rule enforcement functions (BR-01 to BR-11)
 │   │   ├── exportImport.js            # JSON export/import + Ajv validation (F-17, F-18)
 │   │   ├── migration.js               # localStorage schema version migration (B-03)
 │   │   └── integrityCheck.js          # Startup data validation (B-05)
@@ -187,22 +195,24 @@ implementation-wizard/
 │   │   │   └── Tooltip.jsx            # Reusable tooltip wrapper (C-04)
 │   │   │
 │   │   ├── /dashboard
-│   │   │   ├── Dashboard.jsx          # Dashboard view — project card grid
+│   │   │   ├── Dashboard.jsx          # Dashboard view — project card grid + Support Personas panel
 │   │   │   ├── ProjectCard.jsx        # Single project card with strip chart + next action
 │   │   │   ├── StepStripChart.jsx     # 24-cell colour-coded status strip (C-06)
 │   │   │   ├── NextActionBanner.jsx   # Contextual next-step instruction (C-02)
 │   │   │   └── CreateProjectModal.jsx # New project form (F-01)
 │   │   │
 │   │   ├── /project
-│   │   │   ├── ProjectView.jsx        # Project detail view — checklist + step panel
+│   │   │   ├── ProjectView.jsx        # Project detail view — tab bar (Steps / Change Log)
 │   │   │   ├── ProjectHeader.jsx      # Project name, description, rename, archive/delete (F-04, F-05)
 │   │   │   ├── StepChecklist.jsx      # 24-step list with status badges and active highlight (F-06)
 │   │   │   ├── StepRow.jsx            # Single row in the checklist
-│   │   │   └── StepDetailPanel.jsx    # Full step detail — all F-07 fields
+│   │   │   ├── StepDetailPanel.jsx    # Full step detail — all F-07 fields
+│   │   │   ├── AddChangeLogModal.jsx  # Modal for adding/editing change log entries (F-23)
+│   │   │   └── ChangeLogView.jsx      # Change log tab view with table and actions (F-23)
 │   │   │
 │   │   ├── /step
 │   │   │   ├── PromptBox.jsx          # Read-only prompt display + copy button (F-20)
-│   │   │   ├── StatusControls.jsx     # Status buttons with BR enforcement (F-08, F-09, F-10)
+│   │   │   ├── StatusControls.jsx     # Status buttons with BR enforcement (F-08, F-09, F-10, BR-11)
 │   │   │   ├── BlockedReasonField.jsx # Conditional blocked reason input (F-10)
 │   │   │   ├── NotesField.jsx         # Auto-saving free text notes area (F-07)
 │   │   │   └── StepTimer.jsx          # Elapsed time display (F-22)
@@ -217,8 +227,9 @@ implementation-wizard/
 │   │       └── Toast.jsx              # Transient notification (copy confirmed, import success, etc.)
 │   │
 │   └── /tests
-│       ├── stepLogic.test.js          # Vitest unit tests for BR-01 to BR-10 (B-02)
-│       └── exportImport.test.js       # Import validation and export shape tests
+│       ├── stepLogic.test.js          # Vitest unit tests for BR-01 to BR-11 (B-02)
+│       ├── exportImport.test.js       # Import validation and export shape tests
+│       └── changeLog.test.js          # Vitest tests for Change Log reducer and setup gate
 │
 ├── /docs                              # Project documentation (these spec files)
 │   ├── 01-functional-requirements.md
@@ -261,7 +272,9 @@ The `schema_version` integer is incremented whenever the data shape changes. The
   "updated_at": "2026-03-08T14:23:00.000Z",
   "status": "active",
   "steps": [ ...StepRecord × 24 ],
-  "doc_registry": [ ...DocRegistryRecord ]
+  "doc_registry": [ ...DocRegistryRecord ],
+  "change_log": [],
+  "claude_web_setup_complete": false
 }
 ```
 
@@ -275,6 +288,8 @@ The `schema_version` integer is incremented whenever the data shape changes. The
 | `status` | Enum String | `'active'` \| `'complete'` \| `'archived'` |
 | `steps` | Array | Always exactly 24 StepRecord objects. Fixed order. |
 | `doc_registry` | Array | Fixed set of DocRegistryRecord objects per project. |
+| `change_log` | Array | Per-project change log entries. Initialised as []. Migrated by HYDRATE if missing. |
+| `claude_web_setup_complete` | Boolean | Claude Web setup confirmation flag. Initialised as false. Migrated by HYDRATE if missing. |
 
 ---
 
@@ -349,7 +364,33 @@ export const STEPS = [
 
 ---
 
-### 6.6 Export File Shape
+### 6.6 ChangeLogRecord
+
+```json
+{
+  "id": "uuid-v4-string",
+  "date": "2026-03-09",
+  "type": "C",
+  "description": "Add support personas card",
+  "version_target": "V1.1",
+  "personas_to_rerun": "UI Expert, QC Analyst",
+  "status": "Closed"
+}
+```
+
+| Field | Type | Constraints |
+|---|---|---|
+| `id` | String (UUID) | Generated on creation |
+| `date` | String | ISO 8601 date |
+| `type` | Enum String | `'A'` \| `'B'` \| `'C'` \| `'D'` |
+| `description` | String | Required |
+| `version_target` | String | Optional |
+| `personas_to_rerun` | String | Optional |
+| `status` | Enum String | `'Open'` \| `'In Progress'` \| `'Closed'` |
+
+---
+
+### 6.7 Export File Shape
 
 The JSON backup file produced by F-17 wraps the root object with export metadata:
 
@@ -382,6 +423,7 @@ The following table maps each business rule to the specific function and compone
 | **BR-08** Delete requires confirmation | `ConfirmModal.jsx` | Modal fires before `DELETE_PROJECT` action. |
 | **BR-09** Archive removes from dashboard | Dashboard filter: `projects.filter(p => p.status !== 'archived')` | Archived view shows `projects.filter(p => p.status === 'archived')`. |
 | **BR-10** Warning on out-of-sequence un-complete | `stepLogic.js → detectSequenceWarning(stepNumber, allSteps)` | If a later step is In Progress or Complete, returns warning string displayed in `Toast.jsx`. Does not block the action. |
+| **BR-11** Step 2 blocked until `claude_web_setup_complete = true` | `stepLogic.js → getStep2Block(stepNumber, claudeWebSetupComplete)` | Returns blocking reason string when step 2 is attempted with setup incomplete. `StatusControls.jsx` displays amber warning banner and disables In Progress and Complete buttons. |
 
 ---
 
@@ -395,25 +437,32 @@ App.jsx
 │
 ├── Dashboard.jsx  [view: 'dashboard']
 │   ├── CreateProjectModal.jsx
-│   └── ProjectCard.jsx  [× n projects]
-│       ├── StepStripChart.jsx
-│       └── NextActionBanner.jsx
+│   ├── ProjectCard.jsx  [× n projects]
+│   │   ├── StepStripChart.jsx
+│   │   └── NextActionBanner.jsx
+│   └── SupportPersonasPanel
+│       └── PersonaCard  [× 8 personas]
 │
 ├── ProjectView.jsx  [view: 'project']
 │   ├── ProjectHeader.jsx
 │   │   └── ConfirmModal.jsx  [archive / delete]
-│   ├── StepChecklist.jsx
-│   │   └── StepRow.jsx  [× 24]
-│   │       └── StatusBadge.jsx
-│   ├── StepDetailPanel.jsx  [when step selected]
-│   │   ├── ActorBadge.jsx
-│   │   ├── PromptBox.jsx
-│   │   │   └── [copy button → useClipboard]
-│   │   ├── StatusControls.jsx
-│   │   │   ├── BlockedReasonField.jsx
-│   │   │   └── ConfirmModal.jsx  [if needed]
-│   │   ├── NotesField.jsx
-│   │   └── StepTimer.jsx  [useStepTimer]
+│   ├── [Tab bar: Steps | Change Log]
+│   ├── [Steps tab]
+│   │   ├── StepChecklist.jsx
+│   │   │   └── StepRow.jsx  [× 24]
+│   │   │       └── StatusBadge.jsx
+│   │   └── StepDetailPanel.jsx  [when step selected]
+│   │       ├── ActorBadge.jsx
+│   │       ├── PromptBox.jsx
+│   │       │   └── [copy button → useClipboard]
+│   │       ├── StatusControls.jsx
+│   │       │   ├── BlockedReasonField.jsx
+│   │       │   └── ConfirmModal.jsx  [if needed]
+│   │       ├── NotesField.jsx
+│   │       └── StepTimer.jsx  [useStepTimer]
+│   ├── [Change Log tab]
+│   │   └── ChangeLogView.jsx
+│   │       └── AddChangeLogModal.jsx
 │   └── DocTracker.jsx
 │
 └── ArchivedView.jsx  [view: 'archived']
@@ -537,7 +586,37 @@ Each sprint is a focused delivery unit. The Owner works with Claude Code to impl
 
 ---
 
-## 11. Security Considerations
+### Post-Launch Sprint — Support Personas, Change Log, and Setup Gate
+
+**Goal:** Extend the released V1.0 application with operational workflow support features.
+
+| Task ID | Task | Output |
+|---|---|---|
+| PL-01 | Add all 24 real prompt texts to steps.js | steps.js — all prompts populated |
+| PL-02 | Build supportPersonas.js with 8 persona definitions | supportPersonas.js |
+| PL-03 | Build Support Personas card on Dashboard with Copy Definition and Copy All Definitions | Dashboard.jsx updated |
+| PL-04 | Build Change Log data model — change_log field, reducer actions, HYDRATE migration | ProjectContext.jsx updated |
+| PL-05 | Build ChangeLogView.jsx and AddChangeLogModal.jsx | Change Log tab |
+| PL-06 | Add tab bar to ProjectView (Steps / Change Log) | ProjectView.jsx updated |
+| PL-07 | Build Claude Web setup gate — Step 1 checklist, BR-11 blocking, SET_CLAUDE_WEB_SETUP_COMPLETE | stepLogic.js, StatusControls.jsx, StepDetailPanel.jsx updated |
+| PL-08 | Update schema.js — add explicit validation for change_log and claude_web_setup_complete | schema.js updated |
+| PL-09 | Add regression tests — changeLog.test.js (9 tests), exportImport new field tests (7 tests) | 92 total tests passing |
+| PL-10 | Remove stale TypeScript files, update CLAUDE.md | Clean file structure |
+
+---
+
+## 11. Test Summary (Current)
+
+| Test File | Tests | Coverage |
+|---|---|---|
+| stepLogic.test.js | 57 | BR-01 to BR-10, BR-11 (getStep2Block) |
+| changeLog.test.js | 9 | Change Log reducer actions, HYDRATE migration, setup gate |
+| exportImport.test.js | 26 | Import validation, new field validation |
+| **Total** | **92** | All passing as of 2026-03-09 |
+
+---
+
+## 12. Security Considerations
 
 This is a single-user, local browser application with no network connectivity, no authentication, and no server. The security surface is minimal. The following considerations apply regardless.
 
@@ -552,7 +631,7 @@ This is a single-user, local browser application with no network connectivity, n
 
 ---
 
-## 12. Constraints
+## 13. Constraints
 
 | ID | Constraint | Source |
 |---|---|---|
@@ -568,7 +647,7 @@ This is a single-user, local browser application with no network connectivity, n
 
 ---
 
-## 13. Decisions Log
+## 14. Decisions Log
 
 All open questions from v1.0 have been resolved by the Owner. No open questions remain. This document is final and build may commence.
 
@@ -582,7 +661,7 @@ All open questions from v1.0 have been resolved by the Owner. No open questions 
 
 ---
 
-## 14. AI Tool Integration Summary
+## 15. AI Tool Integration Summary
 
 This section records which approved AI tools from `03-ai-recommendations.md` are integrated into the build process and where.
 
@@ -606,4 +685,4 @@ This section records which approved AI tools from `03-ai-recommendations.md` are
 
 ---
 
-*End of Document — 02-technical-specifications.md v1.1 (Final)*
+*End of Document — 02-technical-specifications.md v1.2*
