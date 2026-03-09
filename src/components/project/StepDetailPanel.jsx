@@ -114,6 +114,14 @@ Please review the incomplete steps above and help me continue from where I left 
         <p className="text-sm text-gray-700 leading-relaxed">{staticStep.description}</p>
       </div>
 
+      {/* Reference notes */}
+      {staticStep.notes && (
+        <div className="bg-amber-50 border-l-[3px] border-amber-400 px-4 py-3 rounded-r">
+          <p className="text-xs font-bold text-amber-800 mb-1">Notes</p>
+          <p className="text-sm text-amber-900 leading-relaxed">{staticStep.notes}</p>
+        </div>
+      )}
+
       {/* Expected output */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Expected Output</p>

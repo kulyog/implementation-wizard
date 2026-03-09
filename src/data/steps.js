@@ -16,6 +16,7 @@ export const STEPS = [
     prompt_text: '',
     expected_output: 'A clear written summary of your business requirements, ready to hand to the Domain Expert persona.',
     linked_docs: [],
+    notes: '',
   },
   {
     step_number: 2,
@@ -50,6 +51,12 @@ questions if needed, and produce the complete
 01-functional-requirements.md file.`,
     expected_output: 'Produces 01-functional-requirements.md in the /docs folder.',
     linked_docs: ['01-functional-requirements.md'],
+    notes:
+      'When Claude Web returns open questions, answer each one before asking Claude to produce the final document. ' +
+      'Use this decision guide: (1) If the question is about scope — default to simpler, defer extras to V1.1. ' +
+      '(2) If about users — base on your most typical user. ' +
+      '(3) If about data — prefer localStorage unless you need multi-device access. ' +
+      '(4) If unsure — pick the option with the least rework if you change your mind later.',
   },
   {
     step_number: 3,
@@ -76,6 +83,11 @@ covering: tool, purpose, cost, complexity, and
 recommendation for each item.`,
     expected_output: 'Produces 03-ai-recommendations.md in the /docs folder.',
     linked_docs: ['03-ai-recommendations.md'],
+    notes:
+      'When Claude Web returns open questions or recommendations, decide each one before producing the final document. ' +
+      'Use this guide: (1) Adopt — only if the tool is free or low cost and adds clear value. ' +
+      '(2) Defer — use V1.1 label for good ideas that add complexity now. ' +
+      '(3) Reject — if the tool requires a paid plan or significant setup for marginal benefit.',
   },
   {
     step_number: 4,
@@ -105,6 +117,12 @@ Please read both documents and produce the complete
 - Open questions before build begins`,
     expected_output: 'Produces 02-technical-specifications.md in the /docs folder.',
     linked_docs: ['02-technical-specifications.md'],
+    notes:
+      'When Claude Web returns open questions, answer each one before asking for the final document. ' +
+      'Use this guide: (1) Tech stack questions — prefer the option already in your stack. ' +
+      '(2) Architecture questions — prefer simpler over clever. ' +
+      '(3) Sprint split questions — each sprint should be independently testable. ' +
+      '(4) If genuinely unsure — state your constraint and ask Claude to recommend.',
   },
   {
     step_number: 5,
@@ -133,6 +151,11 @@ colour, professional finance aesthetic, clean
 and minimal.`,
     expected_output: 'Produces 04-wireframes.md in the /docs folder.',
     linked_docs: ['04-wireframes.md'],
+    notes:
+      'When Claude Web returns open questions about layout or design, answer each one before producing wireframes. ' +
+      'Use this guide: (1) Layout questions — prefer the option that shows the most important information without scrolling. ' +
+      '(2) Colour questions — indigo accent on white background is the project default. ' +
+      '(3) Navigation questions — prefer fewer clicks to reach core actions.',
   },
   {
     step_number: 6,
@@ -166,6 +189,11 @@ All Data Integrity and Business Rule tests must be
 High priority.`,
     expected_output: 'Produces 05-test-cases.md in the /docs folder.',
     linked_docs: ['05-test-cases.md'],
+    notes:
+      'When Claude Web returns open questions, answer each one before producing test cases. ' +
+      'Use this guide: (1) Coverage questions — always include at least one negative test per business rule. ' +
+      '(2) Priority questions — Data Integrity and Business Rule tests are always High priority. ' +
+      '(3) Scope questions — include edge cases for any field that accepts free-form input.',
   },
   {
     step_number: 7,
@@ -185,6 +213,7 @@ High priority.`,
       '04-wireframes.md',
       '05-test-cases.md',
     ],
+    notes: '',
   },
   {
     step_number: 8,
@@ -225,6 +254,11 @@ the following in order:
 Confirm each task before moving to the next.`,
     expected_output: 'Complete /src project structure with all configuration, data, and utility files in place.',
     linked_docs: [],
+    notes:
+      'IMPORTANT: Ask Claude Code to place a .gitkeep file inside every empty folder during scaffolding. ' +
+      'Git does not track empty folders — without .gitkeep the folder structure will not appear on GitHub after the first push. ' +
+      'The scaffold prompt already includes this instruction. ' +
+      'See Reference Card §14.2 — Claude Code Quick Start in AI_Dev_Framework_v2.docx.',
   },
   {
     step_number: 9,
@@ -250,6 +284,10 @@ complete, provide a summary table of all tasks
 completed with status and output file names.`,
     expected_output: 'Sprint 1 code complete. Projects can be created and steps tracked with data persisting across sessions.',
     linked_docs: [],
+    notes:
+      'See Reference Card §14.1 — Git Quick Reference for the standard 3-command commit sequence. ' +
+      'If Claude Code session limit is reached mid-sprint, see §7.4 — Sprint Recovery Process. ' +
+      'The Recovery Prompt button in this panel generates the resume prompt automatically.',
   },
   {
     step_number: 10,
@@ -263,6 +301,7 @@ completed with status and output file names.`,
     prompt_text: '',
     expected_output: 'Sprint 1 test log. All High priority tests pass. Unit tests green.',
     linked_docs: ['05-test-cases.md'],
+    notes: '',
   },
   {
     step_number: 11,
@@ -288,6 +327,9 @@ complete, provide a summary table of all tasks
 completed with status and output file names.`,
     expected_output: 'Sprint 2 code complete. All 22 features implemented and functional.',
     linked_docs: [],
+    notes:
+      'See Reference Card §14.1 — Git Quick Reference for the standard 3-command commit sequence. ' +
+      'If Claude Code session limit is reached mid-sprint, see §7.4 — Sprint Recovery Process.',
   },
   {
     step_number: 12,
@@ -301,6 +343,7 @@ completed with status and output file names.`,
     prompt_text: '',
     expected_output: 'Sprint 2 test log. All High priority tests pass.',
     linked_docs: ['05-test-cases.md'],
+    notes: '',
   },
   {
     step_number: 13,
@@ -333,6 +376,9 @@ When Sprint 3 is complete, confirm:
 3. /dist folder ready`,
     expected_output: 'Sprint 3 code complete. Application polished and ready for deployment.',
     linked_docs: [],
+    notes:
+      'See Reference Card §14.1 — Git Quick Reference for the standard 3-command commit sequence. ' +
+      'Sprint 3 must end with npm run build confirming zero errors and all tests passing before moving to the audit.',
   },
   {
     step_number: 14,
@@ -346,6 +392,7 @@ When Sprint 3 is complete, confirm:
     prompt_text: '',
     expected_output: 'Sprint 3 test log. Full Vitest suite green. Application ready for audit.',
     linked_docs: ['05-test-cases.md'],
+    notes: '',
   },
   {
     step_number: 15,
@@ -390,6 +437,11 @@ as Unverifiable rather than Critical — the owner
 will confirm file existence separately.`,
     expected_output: 'Produces audit-report.md in the /docs folder.',
     linked_docs: ['audit-report.md'],
+    notes:
+      'IMPORTANT — Auditor source visibility: Before running the audit, paste your current /src folder structure into the prompt ' +
+      '(run: find src -type f | sort in VS Code terminal). ' +
+      'Where the Auditor cannot verify source code directly, findings will be flagged as Unverifiable — ' +
+      'confirm these manually before treating them as genuine. See §4.2 in AI_Dev_Framework_v2.docx.',
   },
   {
     step_number: 16,
@@ -403,6 +455,7 @@ will confirm file existence separately.`,
     prompt_text: '',
     expected_output: 'Audit findings triaged. Resolution plan agreed. Critical and Major items queued for Claude Code.',
     linked_docs: ['audit-report.md'],
+    notes: '',
   },
   {
     step_number: 17,
@@ -431,6 +484,9 @@ still pass.
 Commit with message: [Audit] Fix Critical findings`,
     expected_output: 'Updated /src with all Critical findings resolved. Audit items closed.',
     linked_docs: ['audit-report.md'],
+    notes:
+      'See Reference Card §14.1 — Git Quick Reference. ' +
+      'Commit after all Critical findings are resolved with message: [Audit] Fix Critical findings.',
   },
   {
     step_number: 18,
@@ -459,6 +515,9 @@ confirm all tests still pass.
 Commit with message: [Audit] Fix Major findings`,
     expected_output: 'Updated /src with Major findings resolved. Audit items closed.',
     linked_docs: ['audit-report.md'],
+    notes:
+      'See Reference Card §14.1 — Git Quick Reference. ' +
+      'Commit after all Major findings are resolved with message: [Audit] Fix Major findings.',
   },
   {
     step_number: 19,
@@ -495,6 +554,11 @@ Where source code is not available for inspection,
 flag as Unverifiable rather than Critical.`,
     expected_output: 'Produces audit-report-v2.md in the /docs folder. Zero Critical findings.',
     linked_docs: ['audit-report-v2.md'],
+    notes:
+      'Paste your updated /src folder structure into the re-audit prompt. ' +
+      'Target score is 80 or above for GO verdict. ' +
+      'Unverifiable findings from v1.0 should be confirmed or closed based on your manual verification. ' +
+      'See §4.2 in AI_Dev_Framework_v2.docx.',
   },
   {
     step_number: 20,
@@ -508,6 +572,7 @@ flag as Unverifiable rather than Critical.`,
     prompt_text: '',
     expected_output: 'Application approved by Owner. Ready for trainer persona and deployment.',
     linked_docs: ['audit-report-v2.md'],
+    notes: '',
   },
   {
     step_number: 21,
@@ -550,6 +615,7 @@ Please produce all three documents:
    - Written in plain, non-technical language`,
     expected_output: 'Produces final-documentation.md, user-faq.md, and user-communication.md.',
     linked_docs: ['final-documentation.md', 'user-faq.md', 'user-communication.md'],
+    notes: '',
   },
   {
     step_number: 22,
@@ -563,6 +629,7 @@ Please produce all three documents:
     prompt_text: '',
     expected_output: 'Complete release package in /releases folder. Ready for deployment.',
     linked_docs: [],
+    notes: '',
   },
   {
     step_number: 23,
@@ -597,6 +664,13 @@ Settings → Pages → Source → gh-pages branch.
 Then wait 2-5 minutes for the URL to go live.`,
     expected_output: 'Application live at GitHub Pages URL. Deployment verified in clean browser.',
     linked_docs: [],
+    notes:
+      'Follow Reference Card §14.4 — GitHub Pages Deployment Checklist in AI_Dev_Framework_v2.docx. ' +
+      'Key steps: (1) Confirm base path in vite.config.js. ' +
+      '(2) Run npm run deploy from VS Code terminal — not inside Claude Code. ' +
+      '(3) Manually enable Pages in GitHub Settings after deploy. ' +
+      '(4) Wait 2-5 minutes. ' +
+      '(5) Smoke test at live URL.',
   },
   {
     step_number: 24,
@@ -610,6 +684,7 @@ Then wait 2-5 minutes for the URL to go live.`,
     prompt_text: '',
     expected_output: 'Post-launch observations documented. V1.1 backlog seeded.',
     linked_docs: [],
+    notes: '',
   },
 ]
 
