@@ -11,6 +11,7 @@ import {
   getActiveStepNumber,
   countCompletedSteps,
   getProgressPercent,
+  getStep2Block,
 } from '../utils/stepLogic'
 
 // ---------------------------------------------------------------------------
@@ -360,6 +361,27 @@ describe('countCompletedSteps', () => {
   it('returns 24 when all complete', () => {
     const allNums = Array.from({ length: 24 }, (_, i) => i + 1)
     expect(countCompletedSteps(withComplete(makeSteps(), allNums))).toBe(24)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getStep2Block — Claude Web setup gate
+// ---------------------------------------------------------------------------
+
+describe('getStep2Block — Claude Web setup gate', () => {
+  it('blocks step 2 when claude_web_setup_complete is false', () => {
+    const result = getStep2Block(2, false)
+    expect(result).not.toBeNull()
+    expect(result).toContain('Claude Web project setup must be completed')
+  })
+
+  it('does not block step 2 when claude_web_setup_complete is true', () => {
+    expect(getStep2Block(2, true)).toBeNull()
+  })
+
+  it('does not block step 3 regardless of claude_web_setup_complete value', () => {
+    expect(getStep2Block(3, false)).toBeNull()
+    expect(getStep2Block(3, true)).toBeNull()
   })
 })
 

@@ -8,6 +8,9 @@ import ProjectCard from './ProjectCard'
 import CreateProjectModal from './CreateProjectModal'
 import Tooltip from '../layout/Tooltip'
 import { TOOLTIPS } from '../../constants/tooltips'
+import { SUPPORT_PERSONAS, buildAllPersonasText } from '../../data/supportPersonas'
+import { useClipboard } from '../../hooks/useClipboard'
+import Toast from '../shared/Toast'
 
 /**
  * @param {{ onOpenProject: function }} props
@@ -57,6 +60,9 @@ export default function Dashboard({ onOpenProject }) {
         </div>
       )}
 
+      {/* Support Personas */}
+      <SupportPersonasPanel />
+
       {/* Create Project Modal */}
       {showCreate && (
         <CreateProjectModal onClose={() => setShowCreate(false)} />
@@ -79,6 +85,96 @@ function EmptyState({ onCreate }) {
       >
         Create First Project
       </button>
+    </div>
+  )
+}
+
+function PersonaCard({ persona, onCopied }) {
+  const { copy, copied } = useClipboard()
+
+  async function handleCopy() {
+    const ok = await copy(persona.prompt_text)
+    if (ok) onCopied()
+  }
+
+  return (
+    <div className="py-3">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-800">{persona.name}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{persona.description}</p>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="shrink-0 text-xs font-medium text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-md transition-colors"
+        >
+          {copied ? 'Copied! ✓' : 'Copy Definition'}
+        </button>
+      </div>
+      {persona.example_prompt && (
+        <div className="mt-3">
+          <p className="text-xs font-semibold text-gray-500 mb-1">How to invoke:</p>
+          <pre className="text-xs text-gray-600 bg-gray-100 rounded-md px-3 py-2 whitespace-pre-wrap font-mono leading-relaxed">
+            {persona.example_prompt}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SupportPersonasPanel() {
+  const [open, setOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+  const { copy: copyAll, copied: copiedAll } = useClipboard()
+
+  async function handleCopyAll() {
+    const ok = await copyAll(buildAllPersonasText())
+    if (ok) setToast(`All ${SUPPORT_PERSONAS.length} persona definitions copied. Paste into Claude Web → Project Settings → Project Instructions.`)
+  }
+
+  return (
+    <div className="mt-8 border border-gray-200 rounded-lg">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
+      >
+        <div>
+          <span className="text-sm font-semibold text-gray-700">Support Personas</span>
+          <span className="ml-2 text-xs text-gray-400">
+            — Paste each definition into Claude Web Project Settings → Project Instructions once per project.
+          </span>
+        </div>
+        <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="px-4 pb-3">
+          {/* Copy All button */}
+          <div className="pt-3 pb-3 border-b border-gray-100">
+            <button
+              onClick={handleCopyAll}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
+            >
+              {copiedAll ? 'Copied! ✓' : 'Copy All Definitions'}
+            </button>
+          </div>
+          {/* Individual persona cards */}
+          <div className="divide-y divide-gray-100">
+            {SUPPORT_PERSONAS.map((persona) => (
+              <PersonaCard
+                key={persona.id}
+                persona={persona}
+                onCopied={() =>
+                  setToast('Persona definition copied. Paste into Claude Web → Project Settings → Project Instructions.')
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {toast && (
+        <Toast message={toast} type="success" onDismiss={() => setToast(null)} />
+      )}
     </div>
   )
 }

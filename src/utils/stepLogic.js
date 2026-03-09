@@ -112,3 +112,19 @@ export function getProgressPercent(steps) {
   if (!steps || steps.length === 0) return 0
   return Math.round((countCompletedSteps(steps) / steps.length) * 100)
 }
+
+/**
+ * Returns a blocking reason string if Step 2 cannot be set to In Progress or
+ * Complete because Claude Web project setup has not been confirmed.
+ * Returns null if no block applies (different step, or setup is complete).
+ *
+ * @param {number} stepNumber
+ * @param {boolean} claudeWebSetupComplete
+ * @returns {string|null}
+ */
+export function getStep2Block(stepNumber, claudeWebSetupComplete) {
+  if (stepNumber === 2 && !claudeWebSetupComplete) {
+    return 'Claude Web project setup must be completed before this step. Use the Setup Checklist in Step 1 to copy all persona definitions and confirm setup.'
+  }
+  return null
+}

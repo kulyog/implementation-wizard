@@ -16,7 +16,11 @@ export const STEPS = [
     prompt_text: '',
     expected_output: 'A clear written summary of your business requirements, ready to hand to the Domain Expert persona.',
     linked_docs: [],
-    notes: '',
+    notes:
+      'Complete both checklist items below before moving to Step 2. ' +
+      'Item 2 is mandatory — Step 2 is locked until Claude Web setup is confirmed. ' +
+      'Use Copy All Definitions to copy all 8 persona definitions in one click, ' +
+      'then paste into Claude Web → Project Settings → Project Instructions.',
   },
   {
     step_number: 2,

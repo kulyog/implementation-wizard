@@ -57,6 +57,7 @@ function projectReducer(state, action) {
         ? payload.projects.map((p) => ({
             ...p,
             change_log: p.change_log ?? [],
+            claude_web_setup_complete: p.claude_web_setup_complete ?? false,
           }))
         : []
       return { ...state, projects, hydrated: true }
@@ -78,6 +79,7 @@ function projectReducer(state, action) {
         steps: createStepRecords(),
         doc_registry: DEFAULT_DOC_REGISTRY.map((doc) => ({ ...doc })),
         change_log: [],
+        claude_web_setup_complete: false,
       }
       return { ...state, projects: [...state.projects, newProject] }
     }
@@ -268,6 +270,20 @@ function projectReducer(state, action) {
           doc.file_name === file_name ? { ...doc, ...updates } : doc
         )
         return touch({ ...project, doc_registry })
+      })
+
+      return { ...state, projects }
+    }
+
+    // -----------------------------------------------------------------------
+    // SET_CLAUDE_WEB_SETUP_COMPLETE — mark Claude Web project setup done/undone
+    // -----------------------------------------------------------------------
+    case 'SET_CLAUDE_WEB_SETUP_COMPLETE': {
+      const { projectId, value } = action.payload
+
+      const projects = state.projects.map((project) => {
+        if (project.project_id !== projectId) return project
+        return touch({ ...project, claude_web_setup_complete: value })
       })
 
       return { ...state, projects }

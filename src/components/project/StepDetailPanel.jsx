@@ -1,8 +1,10 @@
 // /src/components/project/StepDetailPanel.jsx
 // Full step detail panel — all fields from Section 4.3 of functional requirements.
 
+import { useState } from 'react'
 import { useProject } from '../../context/ProjectContext'
 import { STEPS } from '../../data/steps'
+import { SUPPORT_PERSONAS, buildAllPersonasText } from '../../data/supportPersonas'
 import ActorBadge from '../shared/ActorBadge'
 import StatusBadge from '../shared/StatusBadge'
 import PromptBox from '../step/PromptBox'
@@ -25,6 +27,8 @@ import { useClipboard } from '../../hooks/useClipboard'
 export default function StepDetailPanel({ projectId, stepNumber, allSteps, onWarning, onCopied }) {
   const { state, dispatch } = useProject()
   const { copy, copied } = useClipboard()
+  const { copy: copyAllDefs, copied: copiedAllDefs } = useClipboard()
+  const [item1Checked, setItem1Checked] = useState(false)
   const project = state.projects.find((p) => p.project_id === projectId)
 
   const stepRecord = allSteps.find((s) => s.step_number === stepNumber)
@@ -144,6 +148,65 @@ Please review the incomplete steps above and help me continue from where I left 
 
       {/* Prompt box (read-only, BR-06) */}
       <PromptBox promptText={staticStep.prompt_text} onCopied={onCopied} />
+
+      {/* Step 1 — Setup Checklist */}
+      {staticStep.step_number === 1 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Setup Checklist</p>
+          <div className="space-y-3">
+
+            {/* Item 1 — local only */}
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={item1Checked}
+                onChange={(e) => setItem1Checked(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <span className={`text-sm leading-snug ${item1Checked ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                Write down your business requirements before proceeding to Step 2.
+              </span>
+            </label>
+
+            {/* Item 2 — persisted via claude_web_setup_complete */}
+            <div className="space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={project?.claude_web_setup_complete ?? false}
+                  onChange={(e) => {
+                    dispatch({
+                      type: 'SET_CLAUDE_WEB_SETUP_COMPLETE',
+                      payload: { projectId, value: e.target.checked },
+                    })
+                  }}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                <span className={`text-sm leading-snug ${project?.claude_web_setup_complete ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                  Set up Claude Web project — copy all persona definitions and paste into Project Instructions.
+                </span>
+              </label>
+
+              {/* Copy All Definitions button */}
+              <div className="ml-7">
+                <button
+                  onClick={async () => { await copyAllDefs(buildAllPersonasText()) }}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
+                >
+                  {copiedAllDefs ? 'Copied! ✓' : `Copy All Definitions (${SUPPORT_PERSONAS.length})`}
+                </button>
+              </div>
+
+              {/* Confirmation line */}
+              {project?.claude_web_setup_complete && (
+                <p className="ml-7 text-xs text-emerald-700 font-medium">
+                  Claude Web setup confirmed. Step 2 is now unlocked.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status controls */}
       <StatusControls

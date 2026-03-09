@@ -4,7 +4,7 @@
 // BR-04 (blocked requires reason), BR-10 (sequence warning via Toast).
 
 import { useState } from 'react'
-import { canMarkComplete, canMarkBlocked, detectSequenceWarning } from '../../utils/stepLogic'
+import { canMarkComplete, canMarkBlocked, detectSequenceWarning, getStep2Block } from '../../utils/stepLogic'
 import { useProject } from '../../context/ProjectContext'
 import BlockedReasonField from './BlockedReasonField'
 import Tooltip from '../layout/Tooltip'
@@ -49,7 +49,12 @@ const LABELS = {
  * }} props
  */
 export default function StatusControls({ projectId, stepRecord, allSteps, onWarning }) {
-  const { dispatch } = useProject()
+  const { state, dispatch } = useProject()
+  const project = state.projects.find((p) => p.project_id === projectId)
+  const setupBlock = getStep2Block(
+    stepRecord.step_number,
+    project?.claude_web_setup_complete ?? false
+  )
   const [showBlockedField, setShowBlockedField] = useState(false)
   const [blockedReason, setBlockedReason] = useState(stepRecord.blocked_reason || '')
   const [blockedError, setBlockedError] = useState('')
@@ -58,6 +63,12 @@ export default function StatusControls({ projectId, stepRecord, allSteps, onWarn
 
   function handleStatusClick(newStatus) {
     if (newStatus === currentStatus) return
+
+    // Setup gate: Step 2 blocked until Claude Web project setup is confirmed
+    if (setupBlock && (newStatus === 'in_progress' || newStatus === 'complete')) {
+      onWarning(setupBlock)
+      return
+    }
 
     // BR-01: enforce sequential completion
     if (newStatus === 'complete') {
@@ -110,10 +121,19 @@ export default function StatusControls({ projectId, stepRecord, allSteps, onWarn
     <div>
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Status</p>
 
+      {/* Setup gate warning for Step 2 */}
+      {setupBlock && (
+        <div className="mb-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+          {setupBlock}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         {STATUSES.map((s) => {
           const isActive = currentStatus === s
-          const isDisabled = s === 'complete' && !canMarkComplete(stepRecord.step_number, allSteps)
+          const isDisabled =
+            (s === 'complete' && !canMarkComplete(stepRecord.step_number, allSteps)) ||
+            (!!setupBlock && (s === 'in_progress' || s === 'complete'))
 
           return (
             <Tooltip key={s} text={STATUS_TOOLTIPS[s]} position="bottom">
