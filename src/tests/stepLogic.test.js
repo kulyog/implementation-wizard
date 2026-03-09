@@ -11,8 +11,7 @@ import {
   getActiveStepNumber,
   countCompletedSteps,
   getProgressPercent,
-  getStep1Block,
-  getStep2Block,
+  getStep0Gate,
 } from '../utils/stepLogic'
 
 // ---------------------------------------------------------------------------
@@ -238,15 +237,19 @@ describe('deriveProjectStatus — BR-02', () => {
     expect(deriveProjectStatus(steps)).toBe('active')
   })
 
-  it('returns "complete" when all 24 steps are complete', () => {
-    const allNums = Array.from({ length: 24 }, (_, i) => i + 1)
-    const steps = withComplete(makeSteps(), allNums)
+  it('returns "complete" when all 25 steps (0–24) are complete', () => {
+    const steps = [
+      { step_number: 0, status: 'complete' },
+      ...Array.from({ length: 24 }, (_, i) => ({ step_number: i + 1, status: 'complete' })),
+    ]
     expect(deriveProjectStatus(steps)).toBe('complete')
   })
 
-  it('returns "active" when 23 of 24 steps are complete', () => {
-    const allButLast = Array.from({ length: 23 }, (_, i) => i + 1)
-    const steps = withComplete(makeSteps(), allButLast)
+  it('returns "active" when step 0 is pending and steps 1–24 are complete', () => {
+    const steps = [
+      { step_number: 0, status: 'pending' },
+      ...Array.from({ length: 24 }, (_, i) => ({ step_number: i + 1, status: 'complete' })),
+    ]
     expect(deriveProjectStatus(steps)).toBe('active')
   })
 })
@@ -366,47 +369,42 @@ describe('countCompletedSteps', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getStep1Block — Claude Web setup gate
+// getStep0Gate — Step 1 gate
 // ---------------------------------------------------------------------------
 
-describe('getStep1Block — Claude Web setup gate', () => {
-  it('blocks Step 1 Complete when claude_web_setup_complete is false', () => {
-    const result = getStep1Block(1, false)
+describe('getStep0Gate — Step 1 gate', () => {
+  it('Step 1 is blocked when Step 0 is not complete', () => {
+    const allSteps = [
+      { step_number: 0, status: 'pending' },
+      { step_number: 1, status: 'pending' },
+    ]
+    const result = getStep0Gate(1, allSteps)
     expect(result).not.toBeNull()
     expect(typeof result).toBe('string')
   })
 
-  it('does not block Step 1 when claude_web_setup_complete is true', () => {
-    expect(getStep1Block(1, true)).toBeNull()
+  it('Step 1 is not blocked when Step 0 is complete', () => {
+    const allSteps = [
+      { step_number: 0, status: 'complete' },
+      { step_number: 1, status: 'pending' },
+    ]
+    expect(getStep0Gate(1, allSteps)).toBeNull()
   })
 
-  it('does not affect Step 2 regardless of claude_web_setup_complete', () => {
-    expect(getStep1Block(2, false)).toBeNull()
+  it('Step 2 is unaffected regardless of Step 0 status', () => {
+    const allSteps = [
+      { step_number: 0, status: 'pending' },
+      { step_number: 1, status: 'complete' },
+      { step_number: 2, status: 'pending' },
+    ]
+    expect(getStep0Gate(2, allSteps)).toBeNull()
   })
 
-  it('does not affect Step 3 regardless of claude_web_setup_complete', () => {
-    expect(getStep1Block(3, false)).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// getStep2Block — Claude Web setup gate
-// ---------------------------------------------------------------------------
-
-describe('getStep2Block — Claude Web setup gate', () => {
-  it('blocks step 2 when claude_web_setup_complete is false', () => {
-    const result = getStep2Block(2, false)
-    expect(result).not.toBeNull()
-    expect(result).toContain('Claude Web project setup must be completed')
-  })
-
-  it('does not block step 2 when claude_web_setup_complete is true', () => {
-    expect(getStep2Block(2, true)).toBeNull()
-  })
-
-  it('does not block step 3 regardless of claude_web_setup_complete value', () => {
-    expect(getStep2Block(3, false)).toBeNull()
-    expect(getStep2Block(3, true)).toBeNull()
+  it('Step 0 itself is unaffected — gate returns null', () => {
+    const allSteps = [
+      { step_number: 0, status: 'pending' },
+    ]
+    expect(getStep0Gate(0, allSteps)).toBeNull()
   })
 })
 

@@ -20,7 +20,6 @@ function makeProject(overrides = {}) {
     steps: [],
     doc_registry: [],
     change_log: [],
-    claude_web_setup_complete: false,
     ...overrides,
   }
 }
@@ -134,53 +133,17 @@ describe('Change Log reducer actions', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Claude Web setup gate
+// HYDRATE migration
 // ---------------------------------------------------------------------------
 
-describe('Claude Web setup gate', () => {
-  it('Test 6 — SET_CLAUDE_WEB_SETUP_COMPLETE sets value to true', () => {
-    const state = makeState([makeProject({ claude_web_setup_complete: false })])
-    const next = dispatch(state, {
-      type: 'SET_CLAUDE_WEB_SETUP_COMPLETE',
-      payload: { projectId: 'proj-1', value: true },
-    })
-    expect(getProject(next).claude_web_setup_complete).toBe(true)
-  })
-
-  it('Test 7 — SET_CLAUDE_WEB_SETUP_COMPLETE sets value to false', () => {
-    const state = makeState([makeProject({ claude_web_setup_complete: true })])
-    const next = dispatch(state, {
-      type: 'SET_CLAUDE_WEB_SETUP_COMPLETE',
-      payload: { projectId: 'proj-1', value: false },
-    })
-    expect(getProject(next).claude_web_setup_complete).toBe(false)
-  })
-
-  it('Test 8 — HYDRATE migration adds claude_web_setup_complete: false to legacy projects', () => {
+describe('HYDRATE migration', () => {
+  it('Test 6 — HYDRATE migration adds change_log: [] to legacy projects', () => {
     const rawProject = {
       project_id: 'proj-1',
       project_name: 'Old Project',
       status: 'active',
       steps: [],
       doc_registry: [],
-      change_log: [],
-      // claude_web_setup_complete intentionally absent
-    }
-    const next = dispatch({ projects: [], hydrated: false }, {
-      type: 'HYDRATE',
-      payload: { projects: [rawProject] },
-    })
-    expect(getProject(next)).toHaveProperty('claude_web_setup_complete', false)
-  })
-
-  it('Test 9 — HYDRATE migration adds change_log: [] to legacy projects', () => {
-    const rawProject = {
-      project_id: 'proj-1',
-      project_name: 'Old Project',
-      status: 'active',
-      steps: [],
-      doc_registry: [],
-      claude_web_setup_complete: false,
       // change_log intentionally absent
     }
     const next = dispatch({ projects: [], hydrated: false }, {
@@ -188,5 +151,33 @@ describe('Claude Web setup gate', () => {
       payload: { projects: [rawProject] },
     })
     expect(getProject(next).change_log).toEqual([])
+  })
+
+  it('Test 7 — HYDRATE migration adds Step 0 to legacy 24-step projects', () => {
+    const legacySteps = Array.from({ length: 24 }, (_, i) => ({
+      step_number: i + 1,
+      status: 'pending',
+      blocked_reason: '',
+      notes: '',
+      started_at: null,
+      completed_at: null,
+      time_in_step_seconds: 0,
+    }))
+    const rawProject = {
+      project_id: 'proj-1',
+      project_name: 'Old Project',
+      status: 'active',
+      steps: legacySteps,
+      doc_registry: [],
+      change_log: [],
+    }
+    const next = dispatch({ projects: [], hydrated: false }, {
+      type: 'HYDRATE',
+      payload: { projects: [rawProject] },
+    })
+    const project = getProject(next)
+    expect(project.steps).toHaveLength(25)
+    expect(project.steps[0].step_number).toBe(0)
+    expect(project.steps[0].status).toBe('pending')
   })
 })

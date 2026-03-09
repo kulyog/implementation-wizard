@@ -120,13 +120,13 @@ export default function ProjectView({ projectId, onBack }) {
 
           {/* Right: step detail (65%) */}
           <div className="flex-1 bg-white flex flex-col min-h-0">
-            {selectedStep ? (
+            {selectedStep !== null ? (
               <StepDetailPanel
                 projectId={projectId}
                 stepNumber={selectedStep}
                 allSteps={project.steps}
                 onWarning={(msg) => showToast(msg, 'warning')}
-                onCopied={() => showToast('Prompt copied to clipboard!', 'success')}
+                onCopied={(msg) => showToast(msg || 'Prompt copied to clipboard!', 'success')}
               />
             ) : (
               <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">

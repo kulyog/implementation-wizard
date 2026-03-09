@@ -1,5 +1,5 @@
 // /src/components/project/StepChecklist.jsx
-// Full 24-step checklist with status badges, active step highlight, click to select (S2-03).
+// Full 25-step checklist (steps 0–24) with status badges, active step highlight, click to select (S2-03).
 
 import StepRow from './StepRow'
 import { getActiveStepNumber } from '../../utils/stepLogic'

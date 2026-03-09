@@ -22,7 +22,7 @@ function makeStepRecord(step_number) {
 }
 
 function makeSteps() {
-  return Array.from({ length: 24 }, (_, i) => makeStepRecord(i + 1))
+  return Array.from({ length: 25 }, (_, i) => makeStepRecord(i))
 }
 
 function makeDocRecord(file_name, linked_step) {
@@ -133,7 +133,7 @@ describe('parseAndValidateBackup — schema validation failures', () => {
     expect(parseAndValidateBackup(toJson(makeBackup({ projects: [makeProject({ status: 'unknown' })] }))).ok).toBe(false)
   })
 
-  it('rejects if a project has fewer than 24 steps', () => {
+  it('rejects if a project has fewer than 25 steps', () => {
     expect(parseAndValidateBackup(toJson(makeBackup({ projects: [makeProject({ steps: makeSteps().slice(0, 10) })] }))).ok).toBe(false)
   })
 
@@ -150,7 +150,7 @@ describe('parseAndValidateBackup — schema validation failures', () => {
 })
 
 // ---------------------------------------------------------------------------
-// New field validation — change_log and claude_web_setup_complete
+// New field validation — change_log
 // ---------------------------------------------------------------------------
 
 describe('parseAndValidateBackup — new field validation', () => {
@@ -188,17 +188,7 @@ describe('parseAndValidateBackup — new field validation', () => {
     expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(false)
   })
 
-  it('Test 5 — valid claude_web_setup_complete (boolean true) passes import', () => {
-    const project = makeProject({ claude_web_setup_complete: true })
-    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(true)
-  })
-
-  it('Test 6 — invalid claude_web_setup_complete (string) is rejected', () => {
-    const project = makeProject({ claude_web_setup_complete: 'yes' })
-    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(false)
-  })
-
-  it('Test 7 — missing change_log field is still accepted (additionalProperties allows omission)', () => {
+  it('Test 5 — missing change_log field is still accepted (additionalProperties allows omission)', () => {
     const { change_log, ...project } = makeProject()
     expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(true)
   })

@@ -19,7 +19,7 @@ const initialState = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Create a fresh array of 24 StepRecords (all Pending). */
+/** Create a fresh array of 25 StepRecords (step 0–24, all Pending). */
 function createStepRecords() {
   return STEPS.map((step) => ({
     step_number: step.step_number,
@@ -53,12 +53,28 @@ export function projectReducer(state, action) {
     // -----------------------------------------------------------------------
     case 'HYDRATE': {
       const { payload } = action
+      const step0Record = {
+        step_number: 0,
+        status: 'pending',
+        blocked_reason: '',
+        notes: '',
+        started_at: null,
+        completed_at: null,
+        time_in_step_seconds: 0,
+      }
       const projects = Array.isArray(payload?.projects)
-        ? payload.projects.map((p) => ({
-            ...p,
-            change_log: p.change_log ?? [],
-            claude_web_setup_complete: p.claude_web_setup_complete ?? false,
-          }))
+        ? payload.projects.map((p) => {
+            let steps = p.steps ?? []
+            // Migration: prepend Step 0 for existing projects that have 24 steps (1-24) but no step 0
+            if (steps.length === 24 && !steps.some((s) => s.step_number === 0)) {
+              steps = [{ ...step0Record }, ...steps]
+            }
+            return {
+              ...p,
+              steps,
+              change_log: p.change_log ?? [],
+            }
+          })
         : []
       return { ...state, projects, hydrated: true }
     }
@@ -79,7 +95,6 @@ export function projectReducer(state, action) {
         steps: createStepRecords(),
         doc_registry: DEFAULT_DOC_REGISTRY.map((doc) => ({ ...doc })),
         change_log: [],
-        claude_web_setup_complete: false,
       }
       return { ...state, projects: [...state.projects, newProject] }
     }
@@ -270,20 +285,6 @@ export function projectReducer(state, action) {
           doc.file_name === file_name ? { ...doc, ...updates } : doc
         )
         return touch({ ...project, doc_registry })
-      })
-
-      return { ...state, projects }
-    }
-
-    // -----------------------------------------------------------------------
-    // SET_CLAUDE_WEB_SETUP_COMPLETE — mark Claude Web project setup done/undone
-    // -----------------------------------------------------------------------
-    case 'SET_CLAUDE_WEB_SETUP_COMPLETE': {
-      const { projectId, value } = action.payload
-
-      const projects = state.projects.map((project) => {
-        if (project.project_id !== projectId) return project
-        return touch({ ...project, claude_web_setup_complete: value })
       })
 
       return { ...state, projects }

@@ -4,7 +4,7 @@
 // BR-04 (blocked requires reason), BR-10 (sequence warning via Toast).
 
 import { useState } from 'react'
-import { canMarkComplete, canMarkBlocked, detectSequenceWarning, getStep1Block, getStep2Block } from '../../utils/stepLogic'
+import { canMarkComplete, canMarkBlocked, detectSequenceWarning, getStep0Gate } from '../../utils/stepLogic'
 import { useProject } from '../../context/ProjectContext'
 import BlockedReasonField from './BlockedReasonField'
 import Tooltip from '../layout/Tooltip'
@@ -49,11 +49,8 @@ const LABELS = {
  * }} props
  */
 export default function StatusControls({ projectId, stepRecord, allSteps, onWarning }) {
-  const { state, dispatch } = useProject()
-  const project = state.projects.find((p) => p.project_id === projectId)
-  const claudeWebSetupComplete = project?.claude_web_setup_complete ?? false
-  const step1Block = getStep1Block(stepRecord.step_number, claudeWebSetupComplete)
-  const setupBlock = getStep2Block(stepRecord.step_number, claudeWebSetupComplete)
+  const { dispatch } = useProject()
+  const step0Gate = getStep0Gate(stepRecord.step_number, allSteps)
   const [showBlockedField, setShowBlockedField] = useState(false)
   const [blockedReason, setBlockedReason] = useState(stepRecord.blocked_reason || '')
   const [blockedError, setBlockedError] = useState('')
@@ -63,15 +60,9 @@ export default function StatusControls({ projectId, stepRecord, allSteps, onWarn
   function handleStatusClick(newStatus) {
     if (newStatus === currentStatus) return
 
-    // Setup gate: Step 1 Complete blocked until Claude Web setup is confirmed
-    if (step1Block && newStatus === 'complete') {
-      onWarning(step1Block)
-      return
-    }
-
-    // Setup gate: Step 2 blocked until Claude Web project setup is confirmed
-    if (setupBlock && (newStatus === 'in_progress' || newStatus === 'complete')) {
-      onWarning(setupBlock)
+    // Step 0 gate: Step 1 blocked (both In Progress and Complete) until Step 0 is complete
+    if (step0Gate && (newStatus === 'in_progress' || newStatus === 'complete')) {
+      onWarning(step0Gate)
       return
     }
 
@@ -126,17 +117,10 @@ export default function StatusControls({ projectId, stepRecord, allSteps, onWarn
     <div>
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Status</p>
 
-      {/* Setup gate warning for Step 1 (Complete only) */}
-      {step1Block && (
+      {/* Step 0 gate warning for Step 1 */}
+      {step0Gate && (
         <div className="mb-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-          {step1Block}
-        </div>
-      )}
-
-      {/* Setup gate warning for Step 2 */}
-      {setupBlock && (
-        <div className="mb-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-          {setupBlock}
+          {step0Gate}
         </div>
       )}
 
@@ -145,8 +129,7 @@ export default function StatusControls({ projectId, stepRecord, allSteps, onWarn
           const isActive = currentStatus === s
           const isDisabled =
             (s === 'complete' && !canMarkComplete(stepRecord.step_number, allSteps)) ||
-            (!!step1Block && s === 'complete') ||
-            (!!setupBlock && (s === 'in_progress' || s === 'complete'))
+            (!!step0Gate && (s === 'in_progress' || s === 'complete'))
 
           return (
             <Tooltip key={s} text={STATUS_TOOLTIPS[s]} position="bottom">

@@ -37,14 +37,14 @@ export function canMarkComplete(stepNumber, allSteps) {
 
 /**
  * BR-02: Derive the aggregate project status from all step statuses.
- * Returns 'complete' if all 24 steps are complete, otherwise 'active'.
+ * Returns 'complete' if all 25 steps (0–24) are complete, otherwise 'active'.
  * (Archived status is managed separately; this function never returns 'archived'.)
  *
  * @param {Array<{status: string}>} steps
  * @returns {'active'|'complete'}
  */
 export function deriveProjectStatus(steps) {
-  if (steps.length === 24 && steps.every((s) => s.status === 'complete')) {
+  if (steps.length === 25 && steps.every((s) => s.status === 'complete')) {
     return 'complete'
   }
   return 'active'
@@ -114,33 +114,19 @@ export function getProgressPercent(steps) {
 }
 
 /**
- * Returns a blocking reason string if Step 1 cannot be marked Complete because
- * Claude Web setup has not been confirmed. In Progress is still allowed.
- * Returns null if no block applies (different step, or setup is complete).
+ * Returns a blocking reason string if Step 1 cannot be set to In Progress or
+ * Complete because Step 0 (Set Up Claude Web Project) has not been completed.
+ * Returns null if no block applies (different step, or Step 0 is complete).
  *
  * @param {number} stepNumber
- * @param {boolean} claudeWebSetupComplete
+ * @param {Array<{step_number: number, status: string}>} allSteps
  * @returns {string|null}
  */
-export function getStep1Block(stepNumber, claudeWebSetupComplete) {
-  if (stepNumber === 1 && !claudeWebSetupComplete) {
-    return 'Complete the Claude Web setup checklist before marking Step 1 complete. Check item 2 in the setup checklist below.'
-  }
-  return null
-}
-
-/**
- * Returns a blocking reason string if Step 2 cannot be set to In Progress or
- * Complete because Claude Web project setup has not been confirmed.
- * Returns null if no block applies (different step, or setup is complete).
- *
- * @param {number} stepNumber
- * @param {boolean} claudeWebSetupComplete
- * @returns {string|null}
- */
-export function getStep2Block(stepNumber, claudeWebSetupComplete) {
-  if (stepNumber === 2 && !claudeWebSetupComplete) {
-    return 'Claude Web project setup must be completed before this step. Use the Setup Checklist in Step 1 to copy all persona definitions and confirm setup.'
+export function getStep0Gate(stepNumber, allSteps) {
+  if (stepNumber !== 1) return null
+  const step0 = allSteps.find((s) => s.step_number === 0)
+  if (step0?.status !== 'complete') {
+    return 'Step 0 (Set Up Claude Web Project) must be completed before this step can be started. Mark Step 0 complete on the checklist.'
   }
   return null
 }

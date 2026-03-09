@@ -5,6 +5,25 @@
 
 export const STEPS = [
   {
+    step_number: 0,
+    step_name: 'Set Up Claude Web Project',
+    actor: 'me',
+    persona: '',
+    description:
+      'One-time setup before starting the 24-step process. Open the Dashboard, find the Support Personas ' +
+      'card, and click Copy All Definitions. Then go to Claude Web, create a new Project, open Project ' +
+      'Settings → Project Instructions, and paste all persona definitions. Mark this step Complete when done. ' +
+      'Step 1 cannot be started until this step is complete.',
+    prompt_text: '',
+    expected_output:
+      'Claude Web project created with all 8 persona definitions pasted into Project Instructions.',
+    linked_docs: [],
+    notes:
+      'Use the Copy All Definitions button above to copy all 8 persona definitions in one click. ' +
+      'Then go to Claude Web, create a new Project, open Project Settings → Project Instructions, and paste. ' +
+      'Mark this step Complete when done.',
+  },
+  {
     step_number: 1,
     step_name: 'Define Business Requirements',
     actor: 'me',
@@ -17,10 +36,10 @@ export const STEPS = [
     expected_output: 'A clear written summary of your business requirements, ready to hand to the Domain Expert persona.',
     linked_docs: [],
     notes:
-      'Complete both checklist items below before moving to Step 2. ' +
-      'Item 2 is mandatory — Step 2 is locked until Claude Web setup is confirmed. ' +
-      'Use Copy All Definitions to copy all 8 persona definitions in one click, ' +
-      'then paste into Claude Web → Project Settings → Project Instructions.',
+      'Write down your business requirements before proceeding to Step 2. Include: ' +
+      'what the app should do, who will use it, key features needed, and any constraints. ' +
+      'The Domain Expert persona in Step 2 will convert these into a structured functional ' +
+      'requirements document.',
   },
   {
     step_number: 2,

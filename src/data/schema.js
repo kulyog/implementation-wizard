@@ -40,16 +40,13 @@ export const BACKUP_SCHEMA = {
         },
         steps: {
           type: 'array',
-          minItems: 24,
-          maxItems: 24,
+          minItems: 25,
+          maxItems: 25,
           items: { $ref: '#/$defs/stepRecord' },
         },
         doc_registry: {
           type: 'array',
           items: { $ref: '#/$defs/docRegistryRecord' },
-        },
-        claude_web_setup_complete: {
-          type: 'boolean',
         },
         change_log: {
           type: 'array',
@@ -62,7 +59,7 @@ export const BACKUP_SCHEMA = {
       required: ['step_number', 'status'],
       additionalProperties: true,
       properties: {
-        step_number: { type: 'integer', minimum: 1, maximum: 24 },
+        step_number: { type: 'integer', minimum: 0, maximum: 24 },
         status: {
           type: 'string',
           enum: ['pending', 'in_progress', 'complete', 'blocked'],
