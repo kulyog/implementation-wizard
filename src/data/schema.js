@@ -48,6 +48,13 @@ export const BACKUP_SCHEMA = {
           type: 'array',
           items: { $ref: '#/$defs/docRegistryRecord' },
         },
+        claude_web_setup_complete: {
+          type: 'boolean',
+        },
+        change_log: {
+          type: 'array',
+          items: { $ref: '#/$defs/changeLogEntry' },
+        },
       },
     },
     stepRecord: {
@@ -79,6 +86,20 @@ export const BACKUP_SCHEMA = {
           enum: ['pending', 'created', 'noted'],
         },
         user_note: { type: 'string' },
+      },
+    },
+    changeLogEntry: {
+      type: 'object',
+      required: ['id', 'date', 'type', 'description', 'status'],
+      additionalProperties: true,
+      properties: {
+        id:                { type: 'string' },
+        date:              { type: 'string' },
+        type:              { type: 'string', enum: ['A', 'B', 'C', 'D'] },
+        description:       { type: 'string' },
+        version_target:    { type: 'string' },
+        personas_to_rerun: { type: 'string' },
+        status:            { type: 'string', enum: ['Open', 'In Progress', 'Closed'] },
       },
     },
   },

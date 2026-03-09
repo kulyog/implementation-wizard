@@ -150,6 +150,61 @@ describe('parseAndValidateBackup — schema validation failures', () => {
 })
 
 // ---------------------------------------------------------------------------
+// New field validation — change_log and claude_web_setup_complete
+// ---------------------------------------------------------------------------
+
+describe('parseAndValidateBackup — new field validation', () => {
+  it('Test 1 — valid change_log entry passes import', () => {
+    const project = makeProject({
+      change_log: [{
+        id: 'c1',
+        date: '2026-03-09',
+        type: 'A',
+        description: 'Test',
+        version_target: 'V1.1',
+        personas_to_rerun: 'QC Analyst',
+        status: 'Open',
+      }],
+    })
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(true)
+  })
+
+  it('Test 2 — invalid change_log type (not array) is rejected', () => {
+    const project = makeProject({ change_log: 'not an array' })
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(false)
+  })
+
+  it('Test 3 — invalid change_log entry type (Z not in enum) is rejected', () => {
+    const project = makeProject({
+      change_log: [{ id: 'c1', date: '2026-03-09', type: 'Z', description: 'Test', status: 'Open' }],
+    })
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(false)
+  })
+
+  it('Test 4 — invalid change_log status (Done not in enum) is rejected', () => {
+    const project = makeProject({
+      change_log: [{ id: 'c1', date: '2026-03-09', type: 'A', description: 'Test', status: 'Done' }],
+    })
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(false)
+  })
+
+  it('Test 5 — valid claude_web_setup_complete (boolean true) passes import', () => {
+    const project = makeProject({ claude_web_setup_complete: true })
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(true)
+  })
+
+  it('Test 6 — invalid claude_web_setup_complete (string) is rejected', () => {
+    const project = makeProject({ claude_web_setup_complete: 'yes' })
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(false)
+  })
+
+  it('Test 7 — missing change_log field is still accepted (additionalProperties allows omission)', () => {
+    const { change_log, ...project } = makeProject()
+    expect(parseAndValidateBackup(toJson(makeBackup({ projects: [project] }))).ok).toBe(true)
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Schema version mismatch
 // ---------------------------------------------------------------------------
 

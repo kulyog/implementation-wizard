@@ -46,7 +46,7 @@ function touch(project) {
 // Reducer
 // ---------------------------------------------------------------------------
 
-function projectReducer(state, action) {
+export function projectReducer(state, action) {
   switch (action.type) {
     // -----------------------------------------------------------------------
     // HYDRATE — seed state from localStorage on mount (or after import)
