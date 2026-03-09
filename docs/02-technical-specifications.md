@@ -3,13 +3,15 @@
 
 | Field | Detail |
 |---|---|
-| **Document Version** | 1.2 |
+| **Document Version** | 1.3 |
 | **Status** | ✅ Approved — Updated for post-V1.0 features |
 | **Prepared By** | Technical Architect Persona |
 | **Date** | 2026-03-09 |
-| **Input Documents** | 01-functional-requirements.md v1.2, 03-ai-recommendations.md v1.1 (Final) |
+| **Input Documents** | 01-functional-requirements.md v1.3, 03-ai-recommendations.md v1.1 (Final) |
 
 > **v1.2 Change Note:** v1.2 adds post-launch sprint, new components, updated data model, BR-11, and current test summary.
+
+> **v1.3 Change Note:** v1.3 updates Step 0 architecture, removes claude_web_setup_complete field, updates BR-11 to getStep0Gate, and reflects final file structure.
 
 ---
 
@@ -39,8 +41,8 @@ All 22 features (F-01 through F-22) and 10 business rules (BR-01 through BR-10) 
 
 Post-V1.0 additions (now in scope):
 - Per-project Change Log with add/edit/delete (F-23)
-- Support Personas card with Copy Definition and Copy All Definitions (F-24)
-- Claude Web setup gate with Step 1 checklist and Step 2 blocking (F-25, BR-11)
+- Support Personas card with Copy Definition (F-24)
+- Step 0 mandatory Claude Web setup step with Copy All Definitions button (F-26, BR-11)
 
 ### Out of Scope — Version 1.0
 
@@ -124,7 +126,7 @@ The application is a **single-page application (SPA)** with no routing library. 
 │                                                         │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  /src/data/steps.js  (READ-ONLY static data)     │   │
-│  │  STEPS array — 24 objects, never mutated         │   │
+│  │  STEPS array — 25 objects, never mutated         │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -170,7 +172,7 @@ implementation-wizard/
 │   ├── index.css                      # Tailwind base imports only
 │   │
 │   ├── /data
-│   │   ├── steps.js                   # STEPS array — 24 static step definitions (READ-ONLY)
+│   │   ├── steps.js                   # STEPS array — 25 static step definitions, Step 0–24 (READ-ONLY)
 │   │   ├── schema.js                  # Ajv JSON schema for export/import validation (B-01)
 │   │   └── supportPersonas.js         # SUPPORT_PERSONAS array — 8 persona definitions with prompt_text and example_prompt (F-24)
 │   │
@@ -204,9 +206,9 @@ implementation-wizard/
 │   │   ├── /project
 │   │   │   ├── ProjectView.jsx        # Project detail view — tab bar (Steps / Change Log)
 │   │   │   ├── ProjectHeader.jsx      # Project name, description, rename, archive/delete (F-04, F-05)
-│   │   │   ├── StepChecklist.jsx      # 24-step list with status badges and active highlight (F-06)
+│   │   │   ├── StepChecklist.jsx      # Step 0 + 24-step list with status badges and active highlight (F-06)
 │   │   │   ├── StepRow.jsx            # Single row in the checklist
-│   │   │   ├── StepDetailPanel.jsx    # Full step detail — all F-07 fields
+│   │   │   ├── StepDetailPanel.jsx    # Full step detail — all F-07 fields; Step 0 Copy All Definitions button
 │   │   │   ├── AddChangeLogModal.jsx  # Modal for adding/editing change log entries (F-23)
 │   │   │   └── ChangeLogView.jsx      # Change log tab view with table and actions (F-23)
 │   │   │
@@ -224,12 +226,16 @@ implementation-wizard/
 │   │       ├── StatusBadge.jsx        # Coloured status pill component
 │   │       ├── ActorBadge.jsx         # Me / Claude Web / Claude Code badge
 │   │       ├── ConfirmModal.jsx       # Reusable confirmation dialog (F-04, F-08)
+│   │       ├── ErrorBoundary.jsx      # React error boundary — prevents blank screen on runtime error
 │   │       └── Toast.jsx              # Transient notification (copy confirmed, import success, etc.)
+│   │
+│   ├── /constants
+│   │   └── tooltips.js                # Tooltip text strings (C-04)
 │   │
 │   └── /tests
 │       ├── stepLogic.test.js          # Vitest unit tests for BR-01 to BR-11 (B-02)
 │       ├── exportImport.test.js       # Import validation and export shape tests
-│       └── changeLog.test.js          # Vitest tests for Change Log reducer and setup gate
+│       └── changeLog.test.js          # Vitest tests for Change Log reducer and Step 0 gate
 │
 ├── /docs                              # Project documentation (these spec files)
 │   ├── 01-functional-requirements.md
@@ -271,10 +277,9 @@ The `schema_version` integer is incremented whenever the data shape changes. The
   "created_at": "2026-03-08T10:00:00.000Z",
   "updated_at": "2026-03-08T14:23:00.000Z",
   "status": "active",
-  "steps": [ ...StepRecord × 24 ],
+  "steps": [ ...StepRecord × 25 ],
   "doc_registry": [ ...DocRegistryRecord ],
-  "change_log": [],
-  "claude_web_setup_complete": false
+  "change_log": []
 }
 ```
 
@@ -286,10 +291,9 @@ The `schema_version` integer is incremented whenever the data shape changes. The
 | `created_at` | String (ISO 8601) | Set once on creation. Never mutated. |
 | `updated_at` | String (ISO 8601) | Updated on every project or step change. |
 | `status` | Enum String | `'active'` \| `'complete'` \| `'archived'` |
-| `steps` | Array | Always exactly 24 StepRecord objects. Fixed order. |
+| `steps` | Array | Always exactly 25 StepRecord objects. Step 0 through Step 24. Fixed order. |
 | `doc_registry` | Array | Fixed set of DocRegistryRecord objects per project. |
 | `change_log` | Array | Per-project change log entries. Initialised as []. Migrated by HYDRATE if missing. |
-| `claude_web_setup_complete` | Boolean | Claude Web setup confirmation flag. Initialised as false. Migrated by HYDRATE if missing. |
 
 ---
 
@@ -309,7 +313,7 @@ The `schema_version` integer is incremented whenever the data shape changes. The
 
 | Field | Type | Constraints |
 |---|---|---|
-| `step_number` | Integer | 1–24. Immutable. Used as key to look up static STEPS data. |
+| `step_number` | Integer | 0–24. Immutable. Used as key to look up static STEPS data. |
 | `status` | Enum String | `'pending'` \| `'in_progress'` \| `'complete'` \| `'blocked'` |
 | `blocked_reason` | String | Required (non-empty) when `status === 'blocked'`. Empty string otherwise. |
 | `notes` | String | Free text. No length limit enforced. |
@@ -326,6 +330,16 @@ The `schema_version` integer is incremented whenever the data shape changes. The
 ```javascript
 // /src/data/steps.js — NOT stored in localStorage
 export const STEPS = [
+  {
+    step_number: 0,
+    step_name: "Set Up Claude Web Project",
+    actor: "me",
+    persona: "",
+    description: "One-time setup before starting the 24-step process. Copy all 8 persona definitions and paste them into Claude Web Project Settings → Project Instructions.",
+    prompt_text: "",
+    expected_output: "Claude Web project created with all 8 persona definitions in Project Instructions.",
+    linked_docs: []
+  },
   {
     step_number: 1,
     step_name: "Define Business Requirements",
@@ -423,7 +437,7 @@ The following table maps each business rule to the specific function and compone
 | **BR-08** Delete requires confirmation | `ConfirmModal.jsx` | Modal fires before `DELETE_PROJECT` action. |
 | **BR-09** Archive removes from dashboard | Dashboard filter: `projects.filter(p => p.status !== 'archived')` | Archived view shows `projects.filter(p => p.status === 'archived')`. |
 | **BR-10** Warning on out-of-sequence un-complete | `stepLogic.js → detectSequenceWarning(stepNumber, allSteps)` | If a later step is In Progress or Complete, returns warning string displayed in `Toast.jsx`. Does not block the action. |
-| **BR-11** Step 2 blocked until `claude_web_setup_complete = true` | `stepLogic.js → getStep2Block(stepNumber, claudeWebSetupComplete)` | Returns blocking reason string when step 2 is attempted with setup incomplete. `StatusControls.jsx` displays amber warning banner and disables In Progress and Complete buttons. |
+| **BR-11** Step 1 blocked until Step 0 is complete | `stepLogic.js → getStep0Gate(stepNumber, allSteps)` | Returns blocking reason string when step 1 is attempted with Step 0 incomplete. `StatusControls.jsx` displays amber warning banner and disables In Progress and Complete buttons on Step 1. |
 
 ---
 
@@ -449,9 +463,10 @@ App.jsx
 │   ├── [Tab bar: Steps | Change Log]
 │   ├── [Steps tab]
 │   │   ├── StepChecklist.jsx
-│   │   │   └── StepRow.jsx  [× 24]
+│   │   │   └── StepRow.jsx  [× 25: Step 0 + Steps 1–24]
 │   │   │       └── StatusBadge.jsx
 │   │   └── StepDetailPanel.jsx  [when step selected]
+│   │       ├── [Step 0 only: Copy All Definitions button]
 │   │       ├── ActorBadge.jsx
 │   │       ├── PromptBox.jsx
 │   │       │   └── [copy button → useClipboard]
@@ -594,14 +609,14 @@ Each sprint is a focused delivery unit. The Owner works with Claude Code to impl
 |---|---|---|
 | PL-01 | Add all 24 real prompt texts to steps.js | steps.js — all prompts populated |
 | PL-02 | Build supportPersonas.js with 8 persona definitions | supportPersonas.js |
-| PL-03 | Build Support Personas card on Dashboard with Copy Definition and Copy All Definitions | Dashboard.jsx updated |
+| PL-03 | Build Support Personas card on Dashboard with Copy Definition buttons | Dashboard.jsx updated |
 | PL-04 | Build Change Log data model — change_log field, reducer actions, HYDRATE migration | ProjectContext.jsx updated |
 | PL-05 | Build ChangeLogView.jsx and AddChangeLogModal.jsx | Change Log tab |
 | PL-06 | Add tab bar to ProjectView (Steps / Change Log) | ProjectView.jsx updated |
-| PL-07 | Build Claude Web setup gate — Step 1 checklist, BR-11 blocking, SET_CLAUDE_WEB_SETUP_COMPLETE | stepLogic.js, StatusControls.jsx, StepDetailPanel.jsx updated |
-| PL-08 | Update schema.js — add explicit validation for change_log and claude_web_setup_complete | schema.js updated |
-| PL-09 | Add regression tests — changeLog.test.js (9 tests), exportImport new field tests (7 tests) | 92 total tests passing |
-| PL-10 | Remove stale TypeScript files, update CLAUDE.md | Clean file structure |
+| PL-07 | Build Step 0 setup gate — getStep0Gate(), Step 1 blocking, Copy All Definitions in Step 0 panel, remove setup checklist from Step 1 | stepLogic.js, StatusControls.jsx, StepDetailPanel.jsx updated |
+| PL-08 | Update schema.js — add explicit validation for change_log | schema.js updated |
+| PL-09 | Add regression tests — changeLog.test.js (9 tests), exportImport new field tests | 89 total tests passing |
+| PL-10 | Remove stale TypeScript files and empty placeholder directories, update CLAUDE.md | Clean file structure |
 
 ---
 
@@ -609,10 +624,10 @@ Each sprint is a focused delivery unit. The Owner works with Claude Code to impl
 
 | Test File | Tests | Coverage |
 |---|---|---|
-| stepLogic.test.js | 57 | BR-01 to BR-10, BR-11 (getStep2Block) |
-| changeLog.test.js | 9 | Change Log reducer actions, HYDRATE migration, setup gate |
-| exportImport.test.js | 26 | Import validation, new field validation |
-| **Total** | **92** | All passing as of 2026-03-09 |
+| stepLogic.test.js | 57 | BR-01 to BR-10, BR-11 (getStep0Gate) |
+| changeLog.test.js | 9 | Change Log reducer, HYDRATE migration, Step 0 migration |
+| exportImport.test.js | 23 | Import validation, new field validation |
+| **Total** | **89** | All passing as of 2026-03-09 |
 
 ---
 
@@ -627,7 +642,7 @@ This is a single-user, local browser application with no network connectivity, n
 | **XSS via user-entered notes** | Low-Medium | React's JSX rendering escapes all strings by default. Notes content is rendered in a `<textarea>` (not `innerHTML`). No `dangerouslySetInnerHTML` to be used anywhere in the codebase. This must be enforced in Claude Code sessions — flag it in `CLAUDE.md`. |
 | **Prompt text injection** | Low | Prompt text is read-only static data from `steps.js`. Users cannot modify it. The copy-to-clipboard action copies plain text only — no code execution. |
 | **Data loss on browser clear** | Medium | Mitigated by export feature (F-17). User should be advised (via tooltip or help text) to export regularly. Not preventable beyond this without a backend. |
-| **localStorage storage quota exceeded** | Very Low | localStorage quota is typically 5–10MB per origin. At the expected data volume (24 steps × N projects × notes text), this is effectively unlimited for realistic use. Monitor if notes become very large. |
+| **localStorage storage quota exceeded** | Very Low | localStorage quota is typically 5–10MB per origin. At the expected data volume (25 steps × N projects × notes text), this is effectively unlimited for realistic use. Monitor if notes become very large. |
 
 ---
 
@@ -685,4 +700,4 @@ This section records which approved AI tools from `03-ai-recommendations.md` are
 
 ---
 
-*End of Document — 02-technical-specifications.md v1.2*
+*End of Document — 02-technical-specifications.md v1.3*

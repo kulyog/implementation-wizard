@@ -3,13 +3,15 @@
 
 | Field | Detail |
 |---|---|
-| **Document Version** | 1.2 |
+| **Document Version** | 1.3 |
 | **Status** | ✅ Approved — Updated for post-V1.0 features |
 | **Prepared By** | Domain Expert Persona |
 | **Date** | 2026-03-09 |
 | **Owner** | Finance Professional / Solo User |
 
 > **v1.2 Change Note:** v1.2 adds F-23, F-24, F-25, BR-11, and updated data model to reflect post-launch enhancements.
+
+> **v1.3 Change Note:** v1.3 adds Step 0, updates F-24, replaces F-25 with F-26, updates BR-11, and removes claude_web_setup_complete from data model.
 
 ---
 
@@ -120,8 +122,8 @@ These features were added after V1.0 release.
 | # | Feature | Description |
 |---|---|---|
 | F-23 | Change Log | Each project maintains a per-project change log. The user can add, edit, and delete change request entries. Each entry records: Date, Type (A=Mid-build, B=Post-release bug, C=Post-release enhancement, D=Framework improvement), Description, Version Target, Personas to Re-run, and Status (Open / In Progress / Closed). The Change Log is accessible via a dedicated tab within the Project View. |
-| F-24 | Support Personas Card | The Dashboard includes a Support Personas card listing all 8 persona definitions (Domain Expert, AI Expert, Technical Architect, UI Expert, QC Analyst, Auditor, Trainer, Technical Expert). Each persona has a Copy Definition button. A Copy All Definitions button copies all 8 definitions concatenated into a single block for pasting into Claude Web Project Instructions. A How to Invoke section shows a read-only example prompt for each persona. |
-| F-25 | Claude Web Setup Gate | Step 1 includes a mandatory two-item setup checklist: (1) Write business requirements, (2) Set up Claude Web project by copying all persona definitions into Project Instructions. Step 2 is blocked — cannot be set to In Progress or Complete — until item 2 is confirmed. Confirmation persists across browser sessions per project. |
+| F-24 | Support Personas Card | The Dashboard includes a Support Personas reference panel listing all 8 persona definitions (Domain Expert, AI Expert, Technical Architect, UI Expert, QC Analyst, Auditor, Trainer, Technical Expert). Each persona has a Copy Definition button. A How to Invoke section shows a read-only example prompt for each persona. This panel is a reference tool during the build process — not a setup action. |
+| F-26 | Step 0 — Set Up Claude Web Project | A mandatory Step 0 sits before the 24-step build process. Its sole purpose is Claude Web project setup. The Step 0 detail panel contains a Copy All Definitions button that copies all 8 persona definitions in one click. The user pastes these into Claude Web Project Settings → Project Instructions. Step 1 cannot be started until Step 0 is marked Complete. Step 0 is a one-time setup action per project. |
 
 ---
 
@@ -139,16 +141,17 @@ These features were added after V1.0 release.
 | BR-08 | Deleting a project requires an explicit confirmation step. Deletion is permanent. |
 | BR-09 | Archiving a project removes it from the active dashboard view but preserves all data. Archived projects must be accessible via a separate view. |
 | BR-10 | If a step is marked Complete and a subsequent step has already been started, the completion timestamp is recorded but no rollback of subsequent steps is triggered automatically. The user is shown a warning if any earlier step is un-completed. |
-| BR-11 | Step 2 cannot be set to In Progress or Complete until the Claude Web project setup has been confirmed in the Step 1 setup checklist (F-25). An amber warning banner is displayed on Step 2 when this condition is not met. The gate can be reset by unchecking the setup confirmation in Step 1, which re-locks Step 2. |
+| BR-11 | Step 1 cannot be set to In Progress or Complete until Step 0 (Set Up Claude Web Project) is marked Complete. An amber warning banner is displayed on Step 1 when this condition is not met. The gate resets automatically if Step 0 is un-completed. |
 
 ---
 
 ## 6. The 24-Step Process — Master Reference
 
-The following is the master step register. Each step has a defined name, actor, and expected output document. Prompt text for each step will be loaded into the application as static data. **For Version 1.0, all 24 prompt fields will be populated with clearly labelled placeholder text** (e.g. `[PLACEHOLDER — Prompt for Step N to be authored post-testing]`). Real prompts will be authored and substituted after the application has been tested.
+The following is the master step register. Step 0 is a mandatory one-time setup step that must be completed before the 24-step build process begins. Steps 1–24 follow the fixed build sequence.
 
 | Step | Name | Actor | Persona Triggered | Expected /docs Output |
 |---|---|---|---|---|
+| 0 | Set Up Claude Web Project | Me | — | — |
 | 1 | Define Business Requirements | Me | — | — |
 | 2 | Run Domain Expert Persona | Claude Web | Domain Expert | 01-functional-requirements.md |
 | 3 | Run AI Expert Persona | Claude Web | AI Expert | 03-ai-recommendations.md |
@@ -187,9 +190,8 @@ The following is the master step register. Each step has a defined name, actor, 
 | project_description | String | Optional. Max 500 characters. |
 | created_date | DateTime | Auto-set on creation |
 | status | Enum | Active / Complete / Archived |
-| steps | Array | Array of 24 StepRecord objects |
+| steps | Array | Array of 25 StepRecord objects (Step 0 through Step 24) |
 | change_log | Array | Array of ChangeLogRecord objects. Initialised as empty array on project creation. |
-| claude_web_setup_complete | Boolean | Tracks whether the Claude Web project setup has been confirmed in Step 1. Initialised as false on project creation. Persisted in localStorage. |
 
 ### 7.2 Step Record
 
@@ -264,4 +266,4 @@ All open questions from v1.0 have been resolved by the Owner. No open questions 
 
 ---
 
-*End of Document — 01-functional-requirements.md v1.2*
+*End of Document — 01-functional-requirements.md v1.3*
