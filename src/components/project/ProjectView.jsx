@@ -7,6 +7,7 @@ import { getActiveStepNumber } from '../../utils/stepLogic'
 import ProjectHeader from './ProjectHeader'
 import StepChecklist from './StepChecklist'
 import StepDetailPanel from './StepDetailPanel'
+import ChangeLogView from './ChangeLogView'
 import DocTracker from '../docs/DocTracker'
 import Toast from '../shared/Toast'
 import StepStripChart from '../dashboard/StepStripChart'
@@ -27,6 +28,7 @@ export default function ProjectView({ projectId, onBack }) {
   })
   const [toast, setToast] = useState(null) // { message, type }
   const [showDocs, setShowDocs] = useState(false)
+  const [activeTab, setActiveTab] = useState('steps')
 
   const showToast = useCallback((message, type = 'warning') => {
     setToast({ message, type })
@@ -79,37 +81,68 @@ export default function ProjectView({ projectId, onBack }) {
         </div>
       )}
 
-      {/* Main split panel */}
-      <div className="flex flex-1 min-h-0">
-        {/* Left: checklist (35%) */}
-        <div className="w-[35%] border-r border-gray-200 bg-white flex flex-col min-h-0">
-          <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Steps</p>
-          </div>
-          <StepChecklist
-            steps={project.steps}
-            selectedStepNumber={selectedStep}
-            onSelectStep={setSelectedStep}
-          />
-        </div>
-
-        {/* Right: step detail (65%) */}
-        <div className="flex-1 bg-white flex flex-col min-h-0">
-          {selectedStep ? (
-            <StepDetailPanel
-              projectId={projectId}
-              stepNumber={selectedStep}
-              allSteps={project.steps}
-              onWarning={(msg) => showToast(msg, 'warning')}
-              onCopied={() => showToast('Prompt copied to clipboard!', 'success')}
-            />
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-              Select a step to view details.
-            </div>
-          )}
+      {/* Tab bar */}
+      <div className="bg-white border-b border-gray-200 px-6">
+        <div className="flex">
+          {[
+            { id: 'steps', label: 'Steps' },
+            { id: 'changelog', label: 'Change Log' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Main content — Steps or Change Log */}
+      {activeTab === 'steps' ? (
+        <div className="flex flex-1 min-h-0">
+          {/* Left: checklist (35%) */}
+          <div className="w-[35%] border-r border-gray-200 bg-white flex flex-col min-h-0">
+            <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Steps</p>
+            </div>
+            <StepChecklist
+              steps={project.steps}
+              selectedStepNumber={selectedStep}
+              onSelectStep={setSelectedStep}
+            />
+          </div>
+
+          {/* Right: step detail (65%) */}
+          <div className="flex-1 bg-white flex flex-col min-h-0">
+            {selectedStep ? (
+              <StepDetailPanel
+                projectId={projectId}
+                stepNumber={selectedStep}
+                allSteps={project.steps}
+                onWarning={(msg) => showToast(msg, 'warning')}
+                onCopied={() => showToast('Prompt copied to clipboard!', 'success')}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                Select a step to view details.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ChangeLogView
+            projectId={projectId}
+            changeLog={project.change_log ?? []}
+          />
+        </div>
+      )}
 
       {/* Toast notifications */}
       {toast && (

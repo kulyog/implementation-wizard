@@ -52,11 +52,9 @@ questions if needed, and produce the complete
     expected_output: 'Produces 01-functional-requirements.md in the /docs folder.',
     linked_docs: ['01-functional-requirements.md'],
     notes:
-      'When Claude Web returns open questions, answer each one before asking Claude to produce the final document. ' +
-      'Use this decision guide: (1) If the question is about scope — default to simpler, defer extras to V1.1. ' +
-      '(2) If about users — base on your most typical user. ' +
-      '(3) If about data — prefer localStorage unless you need multi-device access. ' +
-      '(4) If unsure — pick the option with the least rework if you change your mind later.',
+      'If the Domain Expert persona asks open questions before producing the document, switch to the Technical Expert persona, ' +
+      'paste the questions with a brief description of your project, and ask for recommended answers. ' +
+      'Paste the reply back here to proceed.',
   },
   {
     step_number: 3,
@@ -84,10 +82,9 @@ recommendation for each item.`,
     expected_output: 'Produces 03-ai-recommendations.md in the /docs folder.',
     linked_docs: ['03-ai-recommendations.md'],
     notes:
-      'When Claude Web returns open questions or recommendations, decide each one before producing the final document. ' +
-      'Use this guide: (1) Adopt — only if the tool is free or low cost and adds clear value. ' +
-      '(2) Defer — use V1.1 label for good ideas that add complexity now. ' +
-      '(3) Reject — if the tool requires a paid plan or significant setup for marginal benefit.',
+      'If the AI Expert persona asks open questions or requests decisions on tool recommendations, switch to the Technical Expert persona, ' +
+      'paste the questions with your project context, and ask for recommended answers. ' +
+      'Paste the reply back here to proceed.',
   },
   {
     step_number: 4,
@@ -118,11 +115,9 @@ Please read both documents and produce the complete
     expected_output: 'Produces 02-technical-specifications.md in the /docs folder.',
     linked_docs: ['02-technical-specifications.md'],
     notes:
-      'When Claude Web returns open questions, answer each one before asking for the final document. ' +
-      'Use this guide: (1) Tech stack questions — prefer the option already in your stack. ' +
-      '(2) Architecture questions — prefer simpler over clever. ' +
-      '(3) Sprint split questions — each sprint should be independently testable. ' +
-      '(4) If genuinely unsure — state your constraint and ask Claude to recommend.',
+      'If the Technical Architect persona asks open questions before producing the technical spec, switch to the Technical Expert persona, ' +
+      'paste the questions with your project context, and ask for recommended answers. ' +
+      'Paste the reply back here to proceed.',
   },
   {
     step_number: 5,
@@ -152,10 +147,9 @@ and minimal.`,
     expected_output: 'Produces 04-wireframes.md in the /docs folder.',
     linked_docs: ['04-wireframes.md'],
     notes:
-      'When Claude Web returns open questions about layout or design, answer each one before producing wireframes. ' +
-      'Use this guide: (1) Layout questions — prefer the option that shows the most important information without scrolling. ' +
-      '(2) Colour questions — indigo accent on white background is the project default. ' +
-      '(3) Navigation questions — prefer fewer clicks to reach core actions.',
+      'If the UI Expert persona asks open questions about layout or design before producing wireframes, switch to the Technical Expert persona, ' +
+      'paste the questions with your project context, and ask for recommended answers. ' +
+      'Paste the reply back here to proceed.',
   },
   {
     step_number: 6,
@@ -190,10 +184,9 @@ High priority.`,
     expected_output: 'Produces 05-test-cases.md in the /docs folder.',
     linked_docs: ['05-test-cases.md'],
     notes:
-      'When Claude Web returns open questions, answer each one before producing test cases. ' +
-      'Use this guide: (1) Coverage questions — always include at least one negative test per business rule. ' +
-      '(2) Priority questions — Data Integrity and Business Rule tests are always High priority. ' +
-      '(3) Scope questions — include edge cases for any field that accepts free-form input.',
+      'If the QC Analyst persona asks open questions about test coverage or priorities, switch to the Technical Expert persona, ' +
+      'paste the questions with your project context, and ask for recommended answers. ' +
+      'Paste the reply back here to proceed.',
   },
   {
     step_number: 7,

@@ -53,11 +53,13 @@ function projectReducer(state, action) {
     // -----------------------------------------------------------------------
     case 'HYDRATE': {
       const { payload } = action
-      return {
-        ...state,
-        projects: Array.isArray(payload?.projects) ? payload.projects : [],
-        hydrated: true,
-      }
+      const projects = Array.isArray(payload?.projects)
+        ? payload.projects.map((p) => ({
+            ...p,
+            change_log: p.change_log ?? [],
+          }))
+        : []
+      return { ...state, projects, hydrated: true }
     }
 
     // -----------------------------------------------------------------------
@@ -75,6 +77,7 @@ function projectReducer(state, action) {
         status: 'active',
         steps: createStepRecords(),
         doc_registry: DEFAULT_DOC_REGISTRY.map((doc) => ({ ...doc })),
+        change_log: [],
       }
       return { ...state, projects: [...state.projects, newProject] }
     }
@@ -265,6 +268,61 @@ function projectReducer(state, action) {
           doc.file_name === file_name ? { ...doc, ...updates } : doc
         )
         return touch({ ...project, doc_registry })
+      })
+
+      return { ...state, projects }
+    }
+
+    // -----------------------------------------------------------------------
+    // ADD_CHANGE_LOG_ENTRY — append a new entry to a project's change_log
+    // -----------------------------------------------------------------------
+    case 'ADD_CHANGE_LOG_ENTRY': {
+      const { project_id, entry } = action.payload
+
+      const projects = state.projects.map((project) => {
+        if (project.project_id !== project_id) return project
+        const newEntry = {
+          id: crypto.randomUUID(),
+          date: entry.date,
+          type: entry.type,
+          description: entry.description,
+          version_target: entry.version_target,
+          personas_to_rerun: entry.personas_to_rerun,
+          status: entry.status,
+        }
+        return touch({ ...project, change_log: [...(project.change_log ?? []), newEntry] })
+      })
+
+      return { ...state, projects }
+    }
+
+    // -----------------------------------------------------------------------
+    // UPDATE_CHANGE_LOG_ENTRY — update an existing entry by id
+    // -----------------------------------------------------------------------
+    case 'UPDATE_CHANGE_LOG_ENTRY': {
+      const { project_id, id, updates } = action.payload
+
+      const projects = state.projects.map((project) => {
+        if (project.project_id !== project_id) return project
+        const change_log = (project.change_log ?? []).map((entry) =>
+          entry.id === id ? { ...entry, ...updates } : entry
+        )
+        return touch({ ...project, change_log })
+      })
+
+      return { ...state, projects }
+    }
+
+    // -----------------------------------------------------------------------
+    // DELETE_CHANGE_LOG_ENTRY — remove an entry by id
+    // -----------------------------------------------------------------------
+    case 'DELETE_CHANGE_LOG_ENTRY': {
+      const { project_id, id } = action.payload
+
+      const projects = state.projects.map((project) => {
+        if (project.project_id !== project_id) return project
+        const change_log = (project.change_log ?? []).filter((entry) => entry.id !== id)
+        return touch({ ...project, change_log })
       })
 
       return { ...state, projects }
