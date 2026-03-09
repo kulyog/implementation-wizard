@@ -114,6 +114,22 @@ export function getProgressPercent(steps) {
 }
 
 /**
+ * Returns a blocking reason string if Step 1 cannot be marked Complete because
+ * Claude Web setup has not been confirmed. In Progress is still allowed.
+ * Returns null if no block applies (different step, or setup is complete).
+ *
+ * @param {number} stepNumber
+ * @param {boolean} claudeWebSetupComplete
+ * @returns {string|null}
+ */
+export function getStep1Block(stepNumber, claudeWebSetupComplete) {
+  if (stepNumber === 1 && !claudeWebSetupComplete) {
+    return 'Complete the Claude Web setup checklist before marking Step 1 complete. Check item 2 in the setup checklist below.'
+  }
+  return null
+}
+
+/**
  * Returns a blocking reason string if Step 2 cannot be set to In Progress or
  * Complete because Claude Web project setup has not been confirmed.
  * Returns null if no block applies (different step, or setup is complete).
